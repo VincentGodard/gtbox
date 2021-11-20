@@ -13,3 +13,12 @@ Description: A Geomorphology Toolbox With Various Functions For The Analysis of 
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Imports: fields,
+         pracma,
+         raster,
+         rgeos,
+         rgdal,
+         rgrass7,
+         sp
+
+
