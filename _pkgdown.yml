@@ -1,0 +1,39 @@
+reference:
+- title: "DEM processing"
+  desc: "Functions to extract and analyze fluvial networks from Digital Elevation Model"
+- contents:
+  -  process_dem
+  -  get_outlets
+  -  get_basins
+  -  get_network
+  -  get_streams
+- title: "Stochastic incision"
+  desc: "Functions to model fluvial incision with stochatic stream discharge"
+- contents:
+  -  Inv_Gamma_dist
+  -  I_instantaneous
+  -  I_long_term
+  -  Qcritical
+- title: "Hillslope modelling"
+  desc: "Functions to model hillslope profiles evolution"
+- contents:
+  -  hillslope_profile
+  -  hillslope_psi
+  -  hillslope_tau
+  -  perron_nlhs
+- title: "Utilities"
+  desc: "Various functions"
+- contents:
+  -  project_points
+  -  swath_profile
+  -  trim_na
+- title: "Channel profile analysis"
+  desc: "Functions to process channel profiles and extract metrics such as steepness index or concavity"
+- contents:
+  -  profile_smooth
+  -  profile_gaussian
+  -  profile_gradient
+home :
+  links:
+  - text: Source code at
+    href: https://gitlab.osupytheas.fr/vgodard/geomorphology
