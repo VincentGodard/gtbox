@@ -1,9 +1,9 @@
 library("raster")
 library("rgdal")
 
-dem_cevennes = raster("devs/data/srtm_cevennes.tif")
-outlets_cevennes = readOGR("devs/data/outlets_cevennes.gpkg")
-profile_cevennes = readOGR("devs/data/profile_cevennes.gpkg")
+dem_cevennes = raster::raster("dev/data/srtm_cevennes.tif")
+outlets_cevennes = rgdal::readOGR("dev/data/outlets_cevennes.gpkg")
+profile_cevennes = rgdal::readOGR("dev/data/profile_cevennes.gpkg")
 
 
 #export

@@ -20,5 +20,5 @@ Imports: fields,
          rgdal,
          rgrass7,
          sp
-
-
+Depends: 
+    R (>= 2.10)
