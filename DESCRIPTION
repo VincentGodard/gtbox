@@ -1,0 +1,15 @@
+Package: gtbox
+Type: Package
+Title: A Geomorphology Toolbox With Various Functions For The Analysis of Topography and Surface Processes
+Version: 0.1.0
+Authors@R: 
+    person(given = "Vincent",
+           family = "Godard",
+           role = c("aut", "cre"),
+           email = "godard@cerege.fr",
+           comment = c(ORCID = "0000-0003-0143-5893"))
+Maintainer: Vincent Godard <godard@cerege.fr>
+Description: A Geomorphology Toolbox With Various Functions For The Analysis of Topography and Surface Processes
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
