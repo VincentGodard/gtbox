@@ -2,7 +2,7 @@
 title: 'Stochastic incision model '
 date: "`r Sys.Date()`"
 author: 'Vincent Godard'
-bibliography: '`r system.file("REFERENCES.bib",package = "geomorphology") `'
+bibliography: '`r system.file("REFERENCES.bib",package = "gtbox") `'
 output:
   html_document: 
     toc: true
@@ -13,10 +13,10 @@ output:
     code_download: true
 ---
 
-We load the `geomorphology` package. 
+We load the `gtbox` package. 
 
 ```{r message=FALSE, warning=FALSE}
-library("geomorphology")
+library("gtbox")
 ```
 
 The theoretical background for the incorporation of discharge probability distributions into rivr incision models have been extensively described in previous studies (@tucker2000stochastic, @lague2005discharge, @dibiase2011influence, @scherler2017testing, @campforts2020parameterization), and its main features will be presented briefly below.

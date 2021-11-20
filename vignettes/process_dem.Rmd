@@ -14,14 +14,14 @@ output:
 
 # Objectives
 
-This tutorial demonstrates the first steps of topographic analysis with the `geomorphology` package.
+This tutorial demonstrates the first steps of topographic analysis with the `gtbox` package.
 
 - getting a Digital Elevation Model into the working environment
 - computing various relevant raster layers
 - extracting basins
 - extracting river profiles
 
-The first thing we have to do is to load the `geomorphology` package (once it has been installed).
+The first thing we have to do is to load the `gtbox` package (once it has been installed).
 It is required to have GRASS GIS (version 7) installed, as some of the functions used here will rely heavily on GRASS raster processing modules (through the `rgrass7` package).
 It will also be necessary to install the following Addons (through the command g.extension in a GRASS session) :
 
@@ -31,7 +31,7 @@ It will also be necessary to install the following Addons (through the command g
 
 
 ```{r message=FALSE, warning=FALSE}
-library("geomorphology")
+library("gtbox")
 library("raster")
 library("rgdal")
 ```
@@ -43,11 +43,11 @@ library("rgdal")
 The typical workflow consists in reading a Digital Elevation Model (DEM) and computing a number of basic rasters (flow accumulation and direction, etc ...) which will be used as a basis for further processing. 
 
 We start by reading and plotting a DEM using the. 
-This is a SRTM DEM (1'') over the Cévennes area in SE France (downloaded from [opentopography.org](https://opentopography.org/)), which is included in the `geomorphology` package.
+This is a SRTM DEM (1'') over the Cévennes area in SE France (downloaded from [opentopography.org](https://opentopography.org/)), which is included in the `gtbox` package.
 Alternatively we could import a DEM using the `raster` function of the `raster` package.
 
 ```{r}
-data("dem_cevennes",package = "geomorphology")
+data("dem_cevennes",package = "gtbox")
 dem0 = dem_cevennes
 rm(dem_cevennes)
 #dem0 = raster("srtm_cevennes.tif") # we could import our own DEM this way
@@ -121,7 +121,7 @@ Now that we have our raster layers computed and neatly organized in the stack, w
 We can first import some corresponding outlets, which should be positioned on the river network pixels (that's why we exported the `streams.tif` raster above).
 
 ```{r}
-data("outlets_cevennes",package = "geomorphology")
+data("outlets_cevennes",package = "gtbox")
 outlets = outlets_cevennes
 rm(outlets_cevennes)
 #outlets = readOGR("../data/outlets_cevennes.gpkg") # we could import our own outlets this way (EPSG:32631)

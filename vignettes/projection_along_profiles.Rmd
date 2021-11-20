@@ -21,7 +21,7 @@ We load a number of packages that will be used
 
 
 ```{r message=FALSE, warning=FALSE}
-library("geomorphology")
+library("gtbox")
 library("raster")
 library("rgdal")
 library("sp")
@@ -31,7 +31,7 @@ library("rgeos")
 
 We load and reproject a Digital Elevation Model over the Cévennes area in SE France.
 ```{r}
-data("dem_cevennes",package = "geomorphology")
+data("dem_cevennes",package = "gtbox")
 dem = dem_cevennes
 rm(dem_cevennes)
 #dem0 = raster("srtm_cevennes.tif") # we could import our own DEM this way
