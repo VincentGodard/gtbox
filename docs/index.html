@@ -77,14 +77,30 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-A Geomorphology Toolbox With Various Functions For The Analysis of Topography and Surface Processes
+<div id="installation" class="section level2">
+<h2 class="hasAnchor">
+<a href="#installation" class="anchor"></a>Installation</h2>
+<p>The simplest way to install the package is using <code>devtools</code> :</p>
+<p><code><a href="https://devtools.r-lib.org//reference/remote-reexports.html">devtools::install_github("VincentGodard/gtbox")</a></code></p>
+<div id="dependance-on-grass" class="section level3">
+<h3 class="hasAnchor">
+<a href="#dependance-on-grass" class="anchor"></a>Dependance on Grass</h3>
+<p>Some of the functions will use the <code>rgrass7</code> package to connect to <a href="https://grass.osgeo.org">GRASS GIS</a>, which must be installed on your system. These functions will need the directory path to GRASS binaries and libraries, containing bin and lib subdirectories (<code>gisBase</code> argument). On a Linux system this can determined by running <code>echo $GISBASE</code> inside a GRASS session.</p>
+<p>You must also install a few GRASS addons, which can be done easily in a GRASS session through the module <code>g.extension</code> :</p>
+<ul>
+<li><code>r.stream.basins</code></li>
+<li><code>r.stream.distance</code></li>
+<li><code>r.stream.order</code></li>
+</ul>
+</div>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
 <h2>Links</h2>
 <ul class="list-unstyled">
-<li>Source code at at <br><a href="https://gitlab.osupytheas.fr/vgodard/geomorphology">https://​gitlab.osupytheas.fr/​vgodard/​geomorphology</a>
+<li>Source code at at <br><a href="https://github.com/VincentGodard/gtbox">https://​github.com/​VincentGodard/​gtbox</a>
 </li>
 </ul>
 </div>
