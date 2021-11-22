@@ -7,6 +7,17 @@ reference:
   -  get_basins
   -  get_network
   -  get_streams
+- title: "Raster computations"
+  desc: "Functions to compute raster-based parameters "
+- contents:
+  -  compute_slope
+  -  compute_curvature
+- title: "Channel profile analysis"
+  desc: "Functions to process along-channel profiles and extract metrics such as steepness index or concavity"
+- contents:
+  -  profile_smooth
+  -  profile_gaussian
+  -  profile_gradient
 - title: "Stochastic incision"
   desc: "Functions to model fluvial incision with stochatic stream discharge"
 - contents:
@@ -27,12 +38,6 @@ reference:
   -  project_points
   -  swath_profile
   -  trim_na
-- title: "Channel profile analysis"
-  desc: "Functions to process channel profiles and extract metrics such as steepness index or concavity"
-- contents:
-  -  profile_smooth
-  -  profile_gaussian
-  -  profile_gradient
 home :
   links:
   - text: Source code at
