@@ -1,3 +1,31 @@
+
+#' Compute zonal statistics from a raster layer
+#'
+#' This function is a frontend for GRASS module `v.rast.stats`
+#'
+#' @param vect the vector layer used for computation
+#' @param rast a `RasterLayer` representing the raster
+#' @param name a prefix for the statistics columns
+#' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
+#'
+#'
+#' @return a vector with attribute table filled with statistics from the raster layer
+#' @export
+#'
+#' @examples
+compute_zonal_stats <- function(vect,rast,name,gisbase){
+  start_grass(rast,"rast",gisbase)
+  rgrass7::writeVECT(vect,vname=c("vect"),v.in.ogr_flags=c("overwrite","o"))
+  rgrass7::execGRASS("v.rast.stats", flags=c("c"),
+                     parameters=list(map="vect",
+                                     raster="rast",
+                                     column_prefix=name))
+  res = rgrass7::readVECT(c("vect"))
+  return(res)
+}
+
+
+
 # TODO check win is odd and >1
 #' Compute curvature over a raster
 #'
@@ -8,12 +36,12 @@
 #'
 #' curvature is C =  2a + 2b
 #'
-#' the computation relies on GRASS GIS r.param.scale function
+#' the computation relies on GRASS GIS `r.param.scale` function
 #'
-#' @param rast a RasterLayer representing the raster (usually a Digital Elevation Model)
+#' @param rast a `RasterLayer` representing the raster (usually a Digital Elevation Model)
 #' @param win an odd integer (>=3) specifying the size of the computation window (in pixels)
 #' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
-#'
+#' @param planar flag to compute planar curvature instead (default FALSE)
 #'
 #' @return a curvature raster
 #' @export
@@ -66,9 +94,9 @@ compute_curvature <- function(rast,win,gisBase,planar=FALSE){
 #'
 #'
 #'
-#' the computation relies on GRASS GIS r.param.scale function
+#' the computation relies on GRASS GIS `r.param.scale` function
 #'
-#' @param rast a RasterLayer representing the raster (usually a Digital Elevation Model)
+#' @param rast a `RasterLayer` representing the raster (usually a Digital Elevation Model)
 #' @param win an odd integer (>=3) specifying the size of the computation window (in pixels)
 #' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #'

@@ -8,10 +8,11 @@ reference:
   -  get_network
   -  get_streams
 - title: "Raster computations"
-  desc: "Functions to compute raster-based parameters "
+  desc: "Functions to compute various raster-based parameters "
 - contents:
   -  compute_slope
   -  compute_curvature
+  -  compute_zonal_stats
 - title: "Channel profile analysis"
   desc: "Functions to process along-channel profiles and extract metrics such as steepness index or concavity"
 - contents:
