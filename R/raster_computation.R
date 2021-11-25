@@ -21,6 +21,7 @@ compute_zonal_stats <- function(vect,rast,name,gisbase){
                                      raster="rast",
                                      column_prefix=name))
   res = rgrass7::readVECT(c("vect"))
+  crs(res)<-crs(vect)
   return(res)
 }
 
