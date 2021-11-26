@@ -16,8 +16,28 @@ start_grass<-function(rast,name,gisBase){
   # create Grass session
   #grid =  SpatialGrid(GridTopology(c(extent(rast)[1]+0.5*res(rast)[1],extent(rast)[3]+0.5*res(rast)[2]),res(rast),c(rast@ncols,rast@nrows)))
   #rgrass7::initGRASS(gisBase,SG=grid,override = TRUE)
-  rgrass7::initGRASS(gisBase,SG=as(rast, 'SpatialGrid'),override = TRUE)
 
+  # init
+  #rgrass7::initGRASS(gisBase,SG=as(rast, 'SpatialGrid'),override = TRUE)
+
+  # start grass
+  rgrass7::initGRASS(gisBase,override = TRUE)
+  # shift to PERMANENT
+  rgrass7::execGRASS("g.mapset",parameters=list(mapset="PERMANENT"))
+  # set projection
+  crs = as.character(crs(rast))
+  rgrass7::execGRASS("g.proj",flags=c("c"),
+                     parameters=list(proj4=crs))
+  # set location properties
+  ext=extent(rast)
+  rgrass7::execGRASS("g.region",parameters=list(rows=dim(rast)[1],
+                                                cols=dim(rast)[2],
+                                                ewres=as.character(res(rast)[1]),
+                                                nsres=as.character(res(rast)[2]),
+                                                w=as.character(ext[1]),
+                                                e=as.character(ext[2]),
+                                                s=as.character(ext[3]),
+                                                n=as.character(ext[4])))
 
   # write raster into location
   rgrass7::writeRAST(as(rast, 'SpatialGridDataFrame'),vname=c(name))
