@@ -4,7 +4,7 @@
 \alias{compute_curvature}
 \title{Compute curvature over a raster}
 \usage{
-compute_curvature(rast, win, gisBase, planar = FALSE)
+compute_curvature(rast, win, gisBase, central = TRUE, planar = FALSE)
 }
 \arguments{
 \item{rast}{a `RasterLayer` representing the raster (usually a Digital Elevation Model)}
@@ -13,7 +13,9 @@ compute_curvature(rast, win, gisBase, planar = FALSE)
 
 \item{gisBase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
 
-\item{planar}{flag to compute planar curvature instead (default FALSE)}
+\item{central}{Constrain fitted surface through central window cell (default TRUE)}
+
+\item{planar}{Compute planar curvature instead (default FALSE)}
 }
 \value{
 a curvature raster

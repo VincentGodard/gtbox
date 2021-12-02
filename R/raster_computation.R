@@ -27,7 +27,6 @@ compute_zonal_stats <- function(vect,rast,name,gisbase){
 
 
 
-# TODO check win is odd and >1
 #' Compute curvature over a raster
 #'
 #' Fits quadratic surfaces at each pixel
@@ -42,13 +41,22 @@ compute_zonal_stats <- function(vect,rast,name,gisbase){
 #' @param rast a `RasterLayer` representing the raster (usually a Digital Elevation Model)
 #' @param win an odd integer (>=3) specifying the size of the computation window (in pixels)
 #' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
-#' @param planar flag to compute planar curvature instead (default FALSE)
+#' @param central Constrain fitted surface through central window cell (default TRUE)
+#' @param planar Compute planar curvature instead (default FALSE)
 #'
 #' @return a curvature raster
 #' @export
 #'
 #' @examples
-compute_curvature <- function(rast,win,gisBase,planar=FALSE){
+compute_curvature <- function(rast,win,gisBase,central=TRUE,planar=FALSE){
+
+  if ((win<3) & (win%%2==0)){stop("win must be an odd integer >=3")}
+
+  if (central) {
+    fl = c("overwrite","c")
+  }else{
+    fl = c("overwrite")
+  }
 
   # start grass session
   start_grass(rast,"rast",gisBase)
@@ -56,36 +64,35 @@ compute_curvature <- function(rast,win,gisBase,planar=FALSE){
 
   if (!planar){
 
-    pars <- list(input="rast",output="r_maxic",method="maxic",size=win)
-    rgrass7::execGRASS("r.param.scale", flags=c("overwrite"), parameters=pars)
-    #rgrass7::execGRASS("r.univar", parameters=list(map="r_maxic"))
+    rgrass7::execGRASS("r.param.scale", flags=fl, parameters=list(input="rast",
+                                                                  output="r_maxic",
+                                                                  method="maxic",
+                                                                  size=win))
 
-    pars <- list(input="rast",output="r_minic",method="minic",size=win)
-    rgrass7::execGRASS("r.param.scale", flags=c("overwrite"), parameters=pars)
-    #rgrass7::execGRASS("r.univar", parameters=list(map="r_minic"))
+    rgrass7::execGRASS("r.param.scale", flags=fl, parameters=list(input="rast",
+                                                                  output="r_minic",
+                                                                  method="minic",
+                                                                  size=win))
 
     rgrass7::execGRASS("r.mapcalc", expression="curv = r_maxic + r_minic")
-    #rgrass7::execGRASS("r.univar", parameters=list(map="curv"))
 
   }else{
-    pars <- list(input="rast",output="curv",method="planc",size=win)
-    rgrass7::execGRASS("r.param.scale", flags=c("overwrite"), parameters=pars)
+    rgrass7::execGRASS("r.param.scale", flags=fl, parameters=list(input="rast",
+                                                                  output="curv",
+                                                                  method="planc",
+                                                                  size=win))
   }
 
-  #  curv = raster(as.matrix(raster(rgrass7::readRAST(c("curv")))),template=rast)
-  curv = raster(rgrass7::readRAST(c("curv")))
+  curv = raster::raster(rgrass7::readRAST(c("curv")))
 
   crs(curv) <- crs(rast)
   extent(curv) <- extent(rast)
 
-
   return(curv)
-
 }
 
 
 
-# TODO check win is odd and >1
 #' Compute slope over a raster
 #'
 #' Fits quadratic surfaces at each pixel
@@ -99,6 +106,7 @@ compute_curvature <- function(rast,win,gisBase,planar=FALSE){
 #'
 #' @param rast a `RasterLayer` representing the raster (usually a Digital Elevation Model)
 #' @param win an odd integer (>=3) specifying the size of the computation window (in pixels)
+#' @param central Constrain fitted surface through central window cell (default TRUE)
 #' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #'
 #'
@@ -106,16 +114,25 @@ compute_curvature <- function(rast,win,gisBase,planar=FALSE){
 #' @export
 #'
 #' @examples
-compute_slope <- function(rast,win,gisBase){
+compute_slope <- function(rast,win,gisBase,central=TRUE){
+
+  if ((win<3) & (win%%2==0)){stop("win must be an odd integer >=3")}
+
+  if (central) {
+    fl = c("overwrite","c")
+  }else{
+    fl = c("overwrite")
+  }
 
   # start grass session
   start_grass(rast,"rast",gisBase)
   Sys.setenv(OMP_NUM_THREADS=1)
 
-  pars <- list(input="rast",output="slope",method="slope",size=win)
-  rgrass7::execGRASS("r.param.scale", flags=c("overwrite"), parameters=pars)
+  rgrass7::execGRASS("r.param.scale", flags=c("overwrite"), parameters=list(input="rast",
+                                                                            output="slope",
+                                                                            method="slope",
+                                                                            size=win))
 
-  #slope = raster(as.matrix(rgrass7::readRAST(c("slope"))),template=rast)
   slope = raster::raster(rgrass7::readRAST(c("slope")))
 
   crs(slope) <- crs(rast)

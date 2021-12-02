@@ -4,7 +4,7 @@
 \alias{compute_slope}
 \title{Compute slope over a raster}
 \usage{
-compute_slope(rast, win, gisBase)
+compute_slope(rast, win, gisBase, central = TRUE)
 }
 \arguments{
 \item{rast}{a `RasterLayer` representing the raster (usually a Digital Elevation Model)}
@@ -12,6 +12,8 @@ compute_slope(rast, win, gisBase)
 \item{win}{an odd integer (>=3) specifying the size of the computation window (in pixels)}
 
 \item{gisBase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
+
+\item{central}{Constrain fitted surface through central window cell (default TRUE)}
 }
 \value{
 a slope raster
