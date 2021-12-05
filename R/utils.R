@@ -145,28 +145,28 @@ get_srtm <- function(sp,buf=0.1) {
 #'
 #' @examples
 trim_na <- function(rst0){
-  # rst0 = terra::trim(rst0)
-  # #
-  # s1 = rst0[terra::nrow(rst0),]
-  # a1 = (1:terra::ncol(rst0))[!is.na(s1)]
-  # s3 = rst0[1,]
-  # a3 = (1:terra::ncol(rst0))[!is.na(s3)]
-  # s2 = rst0[,1]
-  # a2 = (1:terra::nrow(rst0))[!is.na(s2)]
-  # s4 = rst0[,terra::ncol(rst0)]
-  # a4 = (1:terra::nrow(rst0))[!is.na(s4)]
-  # #
-  # lc = range(a1,a3)
-  # lr = range(a2,a4)
-  # #
-  # e = terra::ext(rst0)
-  # xmin = e[1] + lc[1]*terra::res(rst0)[1]
-  # xmax = e[2] - (terra::ncol(rst0)-lc[2])*terra::res(rst0)[1]
-  # ymin = e[3] + (terra::nrow(rst0)-lr[2])*terra::res(rst0)[2]
-  # ymax = e[4] - lr[1]*terra::res(rst0)[2]
+  rst0 = terra::trim(rst0)
   #
-  # rst2 = terra::crop(rst0,terra::ext(c(xmin,xmax,ymin,ymax)))
-  # return(rst2)
+  s1 = rst0[terra::nrow(rst0),]
+  a1 = (1:terra::ncol(rst0))[!is.na(s1)]
+  s3 = rst0[1,]
+  a3 = (1:terra::ncol(rst0))[!is.na(s3)]
+  s2 = rst0[,1]
+  a2 = (1:terra::nrow(rst0))[!is.na(s2)]
+  s4 = rst0[,terra::ncol(rst0)]
+  a4 = (1:terra::nrow(rst0))[!is.na(s4)]
+  #
+  lc = range(a1,a3)
+  lr = range(a2,a4)
+  #
+  e = terra::ext(rst0)
+  xmin = e[1] + lc[1]*terra::res(rst0)[1]
+  xmax = e[2] - (terra::ncol(rst0)-lc[2])*terra::res(rst0)[1]
+  ymin = e[3] + (terra::nrow(rst0)-lr[2])*terra::res(rst0)[2]
+  ymax = e[4] - lr[1]*terra::res(rst0)[2]
+
+  rst2 = terra::crop(rst0,terra::ext(c(xmin,xmax,ymin,ymax)))
+  return(rst2)
 }
 
 
