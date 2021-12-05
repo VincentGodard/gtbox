@@ -4,7 +4,7 @@
 \alias{trim_na}
 \title{Trim a raster to remove NA values on the periphery}
 \usage{
-trim_na(rast)
+trim_na(rst0)
 }
 \arguments{
 \item{rast}{input raster}

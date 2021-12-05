@@ -5,7 +5,7 @@
 \alias{dem_cevennes}
 \title{Digital Elevation Model of the Cevennes area SE France}
 \format{
-A Raster Layer
+A Raster Layer (SpatRaster)
 \describe{
   \item{dimensions}{1568 rows and 2258 columns}
   \item{resolution}{0.0002777778}

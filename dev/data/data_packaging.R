@@ -1,11 +1,10 @@
 library("terra")
 library("gtbox")
 
-tmp = terra::rast("dev/data/srtm_cevennes_utm.tif")
-dem_cevennes = trim_na(tmp)
+dem_cevennes= wrap(trim_na(terra::rast("dev/data/srtm_cevennes_utm.tif")))
 
-outlets_cevennes = terra::vect("dev/data/outlets_cevennes.gpkg")
-profile_cevennes = terra::vect("dev/data/profile_cevennes.gpkg")
+outlets_cevennes = wrap(terra::vect("dev/data/outlets_cevennes.gpkg"))
+profile_cevennes = wrap(terra::vect("dev/data/profile_cevennes.gpkg"))
 
 
 #export
