@@ -44,6 +44,36 @@ start_grass<-function(rast,name,gisBase){
 
 }
 
+
+write_raster_to_grass <- function(rast,name){
+  if(!(is.character(name))){stop("second argument must be a character string")}
+  if(class(rast)[1]!="SpatRaster"){stop("first argument must be a SpatRaster")}
+  rgrass7::writeRAST(as(raster::raster(rast), 'SpatialGridDataFrame'),vname=c(name))
+}
+
+read_raster_from_grass <- function(name){
+  if(!(is.character(name))){stop("argument must be character string")}
+  rast = terra::rast(raster::raster(rgrass7::readRAST(c(name))))
+  return(rast)
+}
+
+write_vector_to_grass <- function(vect,name){
+  if(!(is.character(name))){stop("second argument must be a character string")}
+  if(class(vect)[1]!="SpatVector"){stop("first argument must be a SpatVector")}
+  rgrass7::writeVECT(as(vect,"Spatial"),vname=c(name),v.in.ogr_flags=c("overwrite","o"))
+}
+
+read_vector_from_grass <- function(name){
+  if(!(is.character(name))){stop("argument must be character string")}
+  vector = terra::vect(rgrass7::readVECT(c(name)))
+  return(vector)
+}
+
+
+
+
+
+
 #' Dowload a STRM raster from srtm.csi.cgiar.org
 #'
 #' Compute for each pixel of a raster the value of the following pixel according to flow direction
