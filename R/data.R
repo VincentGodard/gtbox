@@ -10,7 +10,7 @@
 #'
 #'  Accessed: 2020-12-04
 #'
-#' @format A Raster Layer
+#' @format A Raster Layer (SpatRaster)
 #' \describe{
 #'   \item{dimensions}{1568 rows and 2258 columns}
 #'   \item{resolution}{0.0002777778}
