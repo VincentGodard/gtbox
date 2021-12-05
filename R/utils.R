@@ -40,7 +40,7 @@ start_grass<-function(rast,name,gisBase){
                                                 n=as.character(ext[4])))
 
   # write raster into location
-  rgrass7::writeRAST(as(rast, 'SpatialGridDataFrame'),vname=c(name))
+  write_raster_to_grass(rast,name)
 
 }
 
@@ -145,21 +145,27 @@ get_srtm <- function(sp,buf=0.1) {
 #'
 #' @examples
 trim_na <- function(rast){
-  rast = trim(rast)
+  rast = terra::trim(rast)
   #
-  s1 = rast[rast@nrows,]
-  a1 = (1:rast@ncols)[!is.na(s1)]
+  s1 = rast[terra::nrow(rast),]
+  a1 = (1:terra::ncol(rast))[!is.na(s1)]
   s3 = rast[1,]
-  a3 = (1:rast@ncols)[!is.na(s3)]
+  a3 = (1:terra::ncol(rast))[!is.na(s3)]
   s2 = rast[,1]
-  a2 = (1:rast@nrows)[!is.na(s2)]
-  s4 = rast[,rast@ncols]
-  a4 = (1:rast@nrows)[!is.na(s4)]
+  a2 = (1:terra::nrow(rast))[!is.na(s2)]
+  s4 = rast[,terra::ncol(rast)]
+  a4 = (1:terra::nrow(rast))[!is.na(s4)]
   #
   lc = range(a1,a3)
   lr = range(a2,a4)
   #
-  rast2 = crop(rast,extent(rast,lr[1],lr[2],lc[1],lc[2]))
+  e = ext(rast)
+  xmin = e[1] + lc[1]*res(rast)[1]
+  xmax = e[2] - (ncol(rast)-lc[2])*res(rast)[1]
+  ymin = e[3] + (nrow(rast)-lr[2])*res(rast)[2]
+  ymax = e[4] - lr[1]*res(rast)[2]
+
+  rast2 = terra::crop(rast,terra::ext(c(xmin,xmax,ymin,ymax)))
   return(rast2)
 }
 
