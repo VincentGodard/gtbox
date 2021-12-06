@@ -29,12 +29,13 @@ process_dem<-function(dem,th_px,gisBase,precip=NULL,to_net=FALSE){
   names(dem2) <- "z"
 
   # compute accumulation, flow direction and streams/basins ids
-  rgrass7::execGRASS("r.watershed", flags=c("overwrite","s"), parameters=list(elevation="dem",
-                                                                              threshold=th_px,
-                                                                              accumulation="accumulation",
-                                                                              drainage="direction",
-                                                                              stream="streams",
-                                                                              basin="basins"))
+  rgrass7::execGRASS("r.watershed", flags=c("overwrite","s"),
+                     parameters=list(elevation="dem",
+                     threshold=th_px,
+                     accumulation="accumulation",
+                     drainage="direction",
+                     stream="streams",
+                     basin="basins"))
   acc = read_raster_from_grass("accumulation")
   names(acc) <- "acc"
   dir = read_raster_from_grass("direction")
@@ -44,21 +45,27 @@ process_dem<-function(dem,th_px,gisBase,precip=NULL,to_net=FALSE){
   bs_id = read_raster_from_grass("basins")
   names(bs_id) <- "bs_id"
 
+  # compute strahler orders
+  rgrass7::execGRASS("r.stream.order", flags=c("overwrite"),
+                     parameters=list(stream_rast="streams",
+                                     direction="direction",
+                                     strahler="strahler"))
+  sto = read_raster_from_grass("strahler")
+  names(sto) <- "sto"
 
   # get next pixel
   #nxt_id = get_next(st_id,dir)
   #nxt_id@data@names <- "nxt_id"
 
   # compute distance along network
-  rgrass7::execGRASS("r.stream.distance", flags=c("overwrite","o"), parameters=list(stream_rast="streams",
-                                                                                    direction="direction",
-                                                                                    distance="distance"))
+  rgrass7::execGRASS("r.stream.distance", flags=c("overwrite","o"),
+                     parameters=list(stream_rast="streams",
+                     direction="direction",
+                     distance="distance"))
   dist = read_raster_from_grass("distance")
   names(dist) <- "dist"
 
-
-
-  rast_list = c(dem2,acc,dir,dist,st_id,bs_id)
+  rast_list = c(dem2,acc,dir,dist,st_id,bs_id,sto)
 
   # distance  to network and  elevation above network
   if (to_net){
