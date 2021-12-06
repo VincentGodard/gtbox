@@ -7,7 +7,7 @@
 get_streams(net, id, mode = "up")
 }
 \arguments{
-\item{net}{stream network from get_network}
+\item{net}{stream network from `get_network` (SpatVector)}
 
 \item{id}{id of the starting stream segment (integer)}
 

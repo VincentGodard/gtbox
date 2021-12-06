@@ -300,7 +300,7 @@ get_network<-function(st,gisbase,clip=FALSE){
 #' Get ids for all streams segments moving up (default) or down from a starting stream segment (identified with `id`).
 #' Follow the largest accumulation tributary at confluences when moving upstream.
 #'
-#' @param net  stream network from get_network
+#' @param net  stream network from `get_network` (SpatVector)
 #' @param id id of the starting stream segment (integer)
 #' @param mode type of extraction : upstream from id (`up`, default), upstream including all tributaries (`up_all`) or downstream from id (`down`).
 #'
@@ -314,7 +314,9 @@ get_network<-function(st,gisbase,clip=FALSE){
 #'
 #' @examples
 get_streams<-function(net,id,mode="up"){
+  if(class(net)[1]!="SpatVector"){stop("1st argument must be a SpatVector")}
   if (!(mode %in% c("up","up_all","down"))){stop("mode must be one of up, up_all or down")}
+  net = terra::as.data.frame(net)
   if (mode=="up"){
   list_streams = id
   while(net$prev_str01[net$stream==id]!=0 |
