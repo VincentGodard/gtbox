@@ -2,7 +2,7 @@
 #' Initiate a grass throwaway session with proper region definition
 #'
 #'
-#' @param rast  Raster to import (RasterLayer)
+#' @param rast  Raster to import (SpatRast)
 #' @param name for the raster in the location
 #' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others
 #'
@@ -25,19 +25,19 @@ start_grass<-function(rast,name,gisBase){
   # shift to PERMANENT
   rgrass7::execGRASS("g.mapset",parameters=list(mapset="PERMANENT"))
   # set projection
-  crs = as.character(crs(rast))
+  crs0 = as.character(terra::crs(rast,proj=TRUE))
   rgrass7::execGRASS("g.proj",flags=c("c"),
-                     parameters=list(proj4=crs))
+                     parameters=list(proj4=crs0))
   # set location properties
-  ext=extent(rast)
-  rgrass7::execGRASS("g.region",parameters=list(rows=dim(rast)[1],
-                                                cols=dim(rast)[2],
-                                                ewres=as.character(res(rast)[1]),
-                                                nsres=as.character(res(rast)[2]),
-                                                w=as.character(ext[1]),
-                                                e=as.character(ext[2]),
-                                                s=as.character(ext[3]),
-                                                n=as.character(ext[4])))
+  ext0 = terra::ext(rast)
+  rgrass7::execGRASS("g.region",parameters=list(rows=terra::nrow(rast),
+                                                cols=terra::ncol(rast),
+                                                ewres=as.character(terra::res(rast)[1]),
+                                                nsres=as.character(terra::res(rast)[2]),
+                                                w=as.character(ext0[1]),
+                                                e=as.character(ext0[2]),
+                                                s=as.character(ext0[3]),
+                                                n=as.character(ext0[4])))
 
   # write raster into location
   write_raster_to_grass(rast,name)

@@ -4,10 +4,13 @@ gisbase = "/usr/lib/grass78/"
 th_px = 2000 # stream initiation threshold in pixels
 
 data("dem_cevennes",package = "gtbox")
-dem = dem_cevennes
+dem = rast(dem_cevennes)
 rm(dem_cevennes)
 
 
 
 # compute stack and network
+start_grass(dem,"dem",gisbase)
+
+
 st = process_dem(dem,th_px,gisBase=gisbase)
