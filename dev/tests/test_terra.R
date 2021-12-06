@@ -10,9 +10,10 @@ rm(dem_cevennes)
 precip = dem/dem
 
 
-# compute stack and network
-st = process_dem(dem,th_px,gisBase=gisbase,precip=precip,to_net=TRUE)
+# compute stack and network (,precip=precip)
+st = process_dem(dem,th_px,gisBase=gisbase,to_net=FALSE)
 
+tmp = get_next(st$st_id,st$dir)
 
 
 
