@@ -4,7 +4,7 @@
 \alias{get_basins}
 \title{Compute basins corresponding to outlets}
 \usage{
-get_basins(st, outlets, gisBase)
+get_basins(st, outlets, gisbase)
 }
 \arguments{
 \item{st}{A RasterStack object from dem_process}

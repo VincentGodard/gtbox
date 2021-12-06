@@ -118,40 +118,35 @@ process_dem<-function(dem,th_px,gisBase,precip=NULL,to_net=FALSE){
 #' option `large` extract the largest possible basins from the DEM.
 #' The indicated minimum size should be larger than the accumulation threshold used to delineate the network.
 #'
-#' @param st  A RasterStack object from dem_process
+#' option `elevation` extract all outlets at a given elevation
+#'
+#' @param st  A SpatRaster multi-layers object from `dem_process`
 #' @param strahler The Strahler order of the outlets to be extracted
 #' @param large The minimum size (in pixels) for the extraction of the largest possible set of basins
+#' @param elevation The elevation of the outlets
 #'
-#' @return a SpatialPointsDataFrame with identified outlets
+#' @return a SpatVector with identified outlets
 #' @export
 #'
 #' @examples
 get_outlets <- function(st,strahler=NA,large=NA,elevation=NA,gisBase=NA){
+  if(class(st)[1]!="SpatRaster"){stop("1st argument must be a SpatRaster")}
   if (is.na(strahler) & is.na(large) & is.na(elevation)){stop("Must specify one outlet selection option : strahler, large or elevation")}
   if (sum(c(!is.na(strahler),!is.na(large),!is.na(elevation)))>1){stop("Must specify only one outlet selection option")}
   #
   if (!is.na(strahler)) {
-  # compute strahler order
-  start_grass(st$dir,"direction",gisBase)
-  rgrass7::execGRASS("g.region",parameters=list(raster="direction"))
-  rgrass7::writeRAST(as(st$st_id, 'SpatialGridDataFrame'),vname=c("streams"))
-  pars <- list(stream_rast="streams",direction="direction",strahler="strahler")
-  rgrass7::execGRASS("r.stream.order", flags=c("overwrite"), parameters=pars)
-  sto = raster(rgrass7::readRAST(c("strahler")))
-  sto@data@names <- "sto"
-  st$sto=sto
   #
   next_sto = get_next(st$sto,st$dir)
+  next_id = get_next(st$st_id,st$dir)
   pos = st$st_id # initiate the raster
-  pos[st$st_id!=st$nxt_id] <- 1 # select the end of stream segment
-  pos[st$st_id==st$nxt_id] <- NA # remove the rest of the segment
+  pos[st$st_id!=next_id] <- 1 # select the end of stream segment
+  pos[st$st_id==next_id] <- NA # remove the rest of the segment
   pos[st$sto==next_sto] <- NA # remove the segments (last pixel) that do not see a change in strahler order
   pos[st$acc<0] <- NA # remove negative accumulation
   pos = pos*st$sto
-  pts = raster::rasterToPoints(pos,spatial = TRUE)
-  pts = pts[pts$layer==strahler,]
-  #pts$st_id = raster::extract(st$st_id,pts) # add a column with stream id
-  crs(pts)<-crs(st)
+  names(pos) <- "sto"
+  pts = terra::as.points(pos)
+  pts = pts[pts$sto==strahler,]
   return(pts)
   }
   #
@@ -169,12 +164,14 @@ get_outlets <- function(st,strahler=NA,large=NA,elevation=NA,gisBase=NA){
     tmp2[tmp2!=0] <- NA
     tmp2[tmp2==0] <- 1
     tmp2[st$acc<large] <- NA
-    pts = na.omit(raster::as.data.frame(tmp2*st$acc,xy=TRUE))
+    pts = na.omit(terra::as.data.frame(tmp2*st$acc,xy=TRUE))
     colnames(pts) <- c("x","y","acc")
     pts = pts[order(pts$acc,decreasing = TRUE),]
     row.names(pts) <- 1:nrow(pts)
-    pts = SpatialPointsDataFrame(pts[,c("x","y")],as.data.frame(pts$acc))
-    crs(pts)<-crs(st)
+    tab = as.data.frame(pts$acc)
+    colnames(tab)<-"acc"
+    pts = terra::vect(as.matrix(pts[,c("x","y")]),type="points",
+                      atts=tab,crs=terra::crs(st,proj=TRUE))
     return(pts)
   }
   #
@@ -183,19 +180,21 @@ get_outlets <- function(st,strahler=NA,large=NA,elevation=NA,gisBase=NA){
     st_pts = st$z>=elevation & nxt_z<elevation & st$st_id>0
     st_pts[is.na(st_pts)] <- 0
     #
-    start_grass(dem,"dem",gisbase)
-    rgrass7::writeRAST(as(st_pts, 'SpatialGridDataFrame'),vname=c("flow"))
-    pars <- list(elevation="dem",accumulation="accumulation",drainage="direction",flow="flow")
-    rgrass7::execGRASS("r.watershed", flags=c("overwrite","s"), parameters=pars)
-    acc = raster(rgrass7::readRAST(c("accumulation")))
+    start_grass(st$z,"dem",gisbase)
+    write_raster_to_grass(st_pts,"flow")
+    rgrass7::execGRASS("r.watershed", flags=c("overwrite","s"),
+                       parameters=list(elevation="dem",
+                                       accumulation="accumulation",
+                                       drainage="direction",
+                                       flow="flow"))
+    acc = read_raster_from_grass("accumulation")
     #
     nxt_acc =  get_next(acc,st$dir)
     nxt_start =  get_next(st_pts,st$dir)
     st_pts = abs(nxt_acc)==1 & abs(nxt_start)==1 & st$st_id>0 & st$acc>0
     st_pts[st_pts==0]<-NA
-    pts = rasterToPoints(st_pts,spatial = T)
+    pts = terra::as.points(st_pts)
     #
-    crs(pts)<-crs(st)
     return(pts)
   }
 
@@ -219,29 +218,34 @@ get_outlets <- function(st,strahler=NA,large=NA,elevation=NA,gisBase=NA){
 #' @export
 #'
 #' @examples
-get_basins<-function(st,outlets,gisBase){
+get_basins<-function(st,outlets,gisbase){
+  if(class(st)[1]!="SpatRaster"){stop("1st argument must be a SpatRaster")}
+  if(class(outlets)[1]!="SpatVector"){stop("2nd argument must be a SpatVector")}
 
   # start grass session
-  start_grass(st$dir,"direction",gisBase)
-
-  # adjust region?
-  #rgrass7::execGRASS("g.region",raster="direction")
+  start_grass(st$dir,"direction",gisbase)
 
   # write outlets into location
-  rgrass7::writeVECT(outlets,vname=c("outlets"),v.in.ogr_flags=c("overwrite","o"))
+  write_vector_to_grass(outlets,"outlets")
 
   # compute basins
   rgrass7::execGRASS("r.mapcalc", expression="direction0 = round(direction)")
-  pars <- list(direction="direction0",points="outlets",basins="basins")
-  rgrass7::execGRASS("r.stream.basins", flags=c("overwrite"), parameters=pars)
+  rgrass7::execGRASS("r.stream.basins", flags=c("overwrite"),
+                     parameters=list(direction="direction0",
+                                     points="outlets",
+                                     basins="basins"))
 
   # vectorize basins
-  pars <- list(input="basins",output="basins",type="area")
-  rgrass7::execGRASS("r.to.vect", flags=c("overwrite","v"), parameters=pars)
+  rgrass7::execGRASS("r.to.vect", flags=c("overwrite","v"),
+                     parameters=list(input="basins",
+                                     output="basins",
+                                     type="area"))
 
   # attach attribute table
-  pars <- list(map="basins",column="cat",other_table="outlets",other_column="cat")
-  rgrass7::execGRASS("v.db.join", parameters=pars)
+  rgrass7::execGRASS("v.db.join", parameters=list(map="basins",
+                                                  column="cat",
+                                                  other_table="outlets",
+                                                  other_column="cat"))
 
   # # clean basins
   # px_area = ((direction@extent[2]-direction@extent[1])/direction@ncols * (direction@extent[4]-direction@extent[3])/direction@nrows ) # pixel area
@@ -249,43 +253,47 @@ get_basins<-function(st,outlets,gisBase){
   # execGRASS("v.clean", flags=c("overwrite"), parameters=pars)
 
   # export vector from Grass
-  basins = rgrass7::readVECT(c("basins"))
-
-  # affect crs
-  crs(basins)<-crs(st)
+  basins = read_vector_from_grass("basins")
 
   return(basins)
 }
 
-#' Compute river network vector based on a RasterStack
+#' Compute river network vector based on a SpatRast multi-layers raster
 #'
 #'
 #' This function relies on the following GRASS GIS modules :
 #' r.stream.order (add-on to be installed)
 #'
-#' @param st  A RasterStack object from process_dem
+#' @param st  A SpatRast object from `process_dem`
 #' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
+#' @param clip Remove parts with incomplete contributing areas (logical, default FALSE)
 #'
-#' @return A SpatialLineDataFrame with the corresponding network. The attribute table contains information about network topology.
+#' @return A SpatVector with the corresponding network. The attribute table contains information about network topology.
 #' @export
 #'
 #' @examples
-get_network<-function(st,gisBase){
-  start_grass(st$z,"dem",gisBase)
-  rgrass7::execGRASS("g.region",parameters=list(raster="dem"))
-  rgrass7::writeRAST(as(st$st_id, 'SpatialGridDataFrame'),vname=c("streams"))
-  rgrass7::writeRAST(as(st$acc, 'SpatialGridDataFrame'),vname=c("acc"))
-  rgrass7::writeRAST(as(st$dir, 'SpatialGridDataFrame'),vname=c("dir"))
+get_network<-function(st,gisbase,clip=FALSE){
+  if(class(st)[1]!="SpatRaster"){stop("1st argument must be a SpatRaster")}
+  #
+  if(clip){st$st_id[st$acc<0]<-NA}
+  #
+  start_grass(st$z,"dem",gisbase)
+  write_raster_to_grass(st$st_id,"streams")
+  rgrass7::execGRASS("r.mapcalc", expression="streams0 = round(streams)")
+  write_raster_to_grass(st$acc,"acc")
+  write_raster_to_grass(st$dir,"dir")
+  rgrass7::execGRASS("r.mapcalc", expression="dir0 = round(dir)")
   rgrass7::execGRASS("r.stream.order", flags=c("overwrite"),
-                     parameters=list(stream_rast="streams",
+                     parameters=list(stream_rast="streams0",
                                      accumulation="acc",
                                      elevation="dem",
-                                     direction="dir",
+                                     direction="dir0",
                                      stream_vect="temp"))
-  network = rgrass7::readVECT(c("temp"))
-  crs(network)<-crs(st)
+  network = read_vector_from_grass("temp")
   return(network)
   }
+
+
 
 #' Extract portions of the stream network for river long-profile analysis
 #'

@@ -2,17 +2,19 @@
 % Please edit documentation in R/dem_processing.R
 \name{get_network}
 \alias{get_network}
-\title{Compute river network vector based on a RasterStack}
+\title{Compute river network vector based on a SpatRast multi-layers raster}
 \usage{
-get_network(st, gisBase)
+get_network(st, gisbase, clip = FALSE)
 }
 \arguments{
-\item{st}{A RasterStack object from process_dem}
+\item{st}{A SpatRast object from `process_dem`}
+
+\item{clip}{Remove parts with incomplete contributing areas (logical, default FALSE)}
 
 \item{gisBase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
 }
 \value{
-A SpatialLineDataFrame with the corresponding network. The attribute table contains information about network topology.
+A SpatVector with the corresponding network. The attribute table contains information about network topology.
 }
 \description{
 This function relies on the following GRASS GIS modules :

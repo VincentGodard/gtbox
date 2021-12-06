@@ -7,14 +7,16 @@
 get_outlets(st, strahler = NA, large = NA, elevation = NA, gisBase = NA)
 }
 \arguments{
-\item{st}{A RasterStack object from dem_process}
+\item{st}{A SpatRaster multi-layers object from `dem_process`}
 
 \item{strahler}{The Strahler order of the outlets to be extracted}
 
 \item{large}{The minimum size (in pixels) for the extraction of the largest possible set of basins}
+
+\item{elevation}{The elevation of the outlets}
 }
 \value{
-a SpatialPointsDataFrame with identified outlets
+a SpatVector with identified outlets
 }
 \description{
 option `strahler` extract all the basins of the given strahler order
@@ -22,4 +24,6 @@ option `strahler` extract all the basins of the given strahler order
 \details{
 option `large` extract the largest possible basins from the DEM.
 The indicated minimum size should be larger than the accumulation threshold used to delineate the network.
+
+option `elevation` extract all outlets at a given elevation
 }
