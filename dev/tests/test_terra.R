@@ -15,6 +15,7 @@ st = process_dem(dem,th_px,gisBase=gisbase,to_net=FALSE)
 
 net = get_network(st,gisbase,clip=TRUE)
 
+writeRaster(st$st_id,"/tmp/st.tif")
 
 #tmp = get_next(st$st_id,st$dir)
 
@@ -62,4 +63,13 @@ plot(st$z, col=rainbow(25, alpha=0.35), add=TRUE)
 lines(bas)
 points(out)
 
-
+# outlet custom
+data("outlets_cevennes",package = "gtbox")
+out = vect(outlets_cevennes)
+rm(outlets_cevennes)
+bas = get_basins(st,out,gisbase)
+plot(hill, col=grey(0:100/100), legend=FALSE, mar=c(2,2,1,4))
+plot(st$z, col=rainbow(25, alpha=0.35), add=TRUE)
+lines(bas)
+points(out)
+writeVector(bas,"/tmp/bas.gpkg")

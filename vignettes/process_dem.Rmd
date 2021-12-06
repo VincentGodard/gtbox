@@ -23,17 +23,21 @@ This tutorial demonstrates the first steps of topographic analysis with the `gtb
 
 The first thing we have to do is to load the `gtbox` package (once it has been installed).
 It is required to have GRASS GIS (version 7) installed, as some of the functions used here will rely heavily on GRASS raster processing modules (through the `rgrass7` package).
-It will also be necessary to install the following Addons (through the command g.extension in a GRASS session) :
+It will also be necessary to install the following Addons (through the command `g.extension` in a GRASS session) :
 
 - `r.stream.distance`
 - `r.stream.basins`
 - `r.stream.order`
 
+Note that we will use the `terra` package for most geospatial operations in R. We will use the standard formats from this package : `SpatRaster` for raster layers (eventually with multiple layers) and `SpatVector` for vector layers.
+
+More information on the terra package can be found here :
+
+- [https://rspatial.org/terra/index.html](https://rspatial.org/terra/index.html)
 
 ```{r message=FALSE, warning=FALSE}
 library("gtbox")
-library("raster")
-library("rgdal")
+library("terra")
 ```
 
 
@@ -44,31 +48,13 @@ The typical workflow consists in reading a Digital Elevation Model (DEM) and com
 
 We start by reading and plotting a DEM using the. 
 This is a SRTM DEM (1'') over the Cévennes area in SE France (downloaded from [opentopography.org](https://opentopography.org/)), which is included in the `gtbox` package.
-Alternatively we could import a DEM using the `raster` function of the `raster` package.
+Alternatively we could import a DEM using the `rast` function of the `terra` package.
 
 ```{r}
 data("dem_cevennes",package = "gtbox")
-dem0 = dem_cevennes
+dem = terra::rast(dem_cevennes)
 rm(dem_cevennes)
-#dem0 = raster("srtm_cevennes.tif") # we could import our own DEM this way
-plot(dem0)
-```
-
-And here are the properties of this raster.
-
-```{r}
-print(dem0)
-```
-
-This raster grid is defined in terms of latitude and longitude over the WGS84 datum, so we first need to project the raster to work with a cartesian grid :
-
- - toward UTM 31N (*EPSG: 32631*)
- - with a 30 m resolution
- - using a bilinear interpolation (nearest neighbor interpolation is not optimal for continuous variables)
-
-```{r}
-dem <- projectRaster(dem0, crs="EPSG:32631",res=30,method="bilinear")
-dem = trim_na(dem) # we trim to get a nice rectangular DEM with no NA on the sides
+#dem = terra::rast("srtm_cevennes.tif") # we could import our own DEM this way
 plot(dem)
 ```
 
@@ -78,21 +64,32 @@ And here are the properties of this raster.
 print(dem)
 ```
 
+We can compute a hillshade surface and use some transparency on the DEM for a nicer display.
+
+```{r}
+slope <- terra::terrain(dem, "slope", unit="radians")
+aspect <- terra::terrain(dem, "aspect", unit="radians")
+hill <- terra::shade(slope, aspect, 40, 270)
+plot(hill, col=grey(0:100/100), legend=FALSE)
+plot(dem, col=rainbow(25, alpha=0.35), add=TRUE)
+```
+
+
 # Processing the DEM
 
 Then we use the `process_dem` function to launch an analysis of the DEM and compute various associated rasters. 
-This part of the treatment relies on GRASS GIS, as this function will call some GRASS GIS modules, so we need to explain where to find them on the system with the `gisBase` argument.
+This part of the treatment relies on GRASS GIS, as this function will call some GRASS GIS modules, so we need to explain where to find them on the system with the `gisbase` argument.
 The other important argument is the accumulation value (number of pixels) for channel initiation. 
-The output will be organized as a `RasterStack`, which is a collection of rasters with same extent and resolution.
+The output will be organized as a multi-layers `SpatRaster`.
 
-```{r}
+```{r warning=FALSE}
 gisbase = "/usr/lib/grass78/"
 th_px = 2000 # stream initiation threshold in pixels
 st = process_dem(dem,th_px,gisBase=gisbase)
 print(st)
 ```
 
-This stack contains the following rasters (plus eventually some other optional rasters) :
+This `SpatRaster` the following layers (plus eventually some other optional layers) :
 
 |Raster|Explanation|
 |---|---|
@@ -101,20 +98,20 @@ This stack contains the following rasters (plus eventually some other optional r
 |dir|Flow direction computed with GRASS module r.watershed |
 |dist| Distance along network computed with GRASS module r.stream.distance (Addons) |
 |st_id| Stream segments unique identifiers (integer) computed with GRASS module r.watershed |
-|nxt_id| Stream segment id associated with next pixel following flow direction|
+|sto| Strahler orders of the stream segments|
 |bs_id| Elementary sub-basins identifiers (integer) corresponding to st_id (r.watershed) |
 
-We can export the stream raster (`st_id`) for vizualisation purposes in a GIS (e.g. QGIS). 
-We coerce the RasterLayer object stored in the `RasterStack` into a `SpatialGridDataFrame` object prior to exporting into a GeoTif raster.
+We can export the stream raster (`st_id`) for visualization purposes in a GIS (e.g. QGIS). 
+We extract the corresponding `SpatRaster` layer  prior to exporting into a GeoTif raster.
 
 ```{r}
-writeGDAL(as(st$st_id, 'SpatialGridDataFrame'),"/tmp/streams.tif")
+terra::writeRaster(st$st_id,"/tmp/streams.tif",overwrite=TRUE)
 ```
 
 
 # Extracting basins
 
-Now that we have our raster layers computed and neatly organized in the stack, we want to extract some basins to process.
+Now that we have our raster layers computed and neatly organized, we want to extract some basins to process.
 
 ## Using user-defined outlets
 
@@ -122,23 +119,26 @@ We can first import some corresponding outlets, which should be positioned on th
 
 ```{r}
 data("outlets_cevennes",package = "gtbox")
-outlets = outlets_cevennes
+outlets = terra::vect(outlets_cevennes)
 rm(outlets_cevennes)
-#outlets = readOGR("../data/outlets_cevennes.gpkg") # we could import our own outlets this way (EPSG:32631)
+#outlets = terra::vect("../data/outlets_cevennes.gpkg") # we could import our own outlets this way (EPSG:32631)
 ```
 
-Once the outlets positions have been imported as `SpatialPointsDataFrame` object, they can be used to compute the corresponding basins using the `get_basins` function (it again relies on GRASS modules), which require the flow direction raster (`dir`) from our `RasterStack` as an input.
+Once the outlets positions have been imported as `SpatVector` object, they can be used to compute the corresponding basins using the `get_basins` function (it again relies on GRASS modules), which require the flow direction raster (`dir`) from our `SpatRaster` as an input.
+ 
+We can export the vector to the GeoPackage format for external visualization with QGIS. 
  
 ```{r}
-basins = get_basins(st$dir,outlets,gisBase=gisbase)
-writeOGR(basins,"/tmp/basins.gpkg",layer="basins",driver="GPKG",overwrite_layer=TRUE)
+basins = get_basins(st,outlets,gisbase)
+writeVector(basins,"/tmp/basins.gpkg",overwrite=TRUE)
 print(basins)
 ```
 
 We can then plot these basins and their outlets on a map.
 
 ```{r}
-plot(st$z)
+plot(hill, col=grey(0:100/100), legend=FALSE, mar=c(2,2,1,4))
+plot(st$z, col=rainbow(25, alpha=0.35), add=TRUE)
 lines(basins)
 points(outlets,pch=21,bg="white",cex=1.5)
 text(outlets,basins$cat,cex=0.7)
@@ -146,13 +146,12 @@ text(outlets,basins$cat,cex=0.7)
 
 
 The attribute table of the outlets vector is passed to the new basins vector. 
-We can export the vector to the GeoPackage format for external visualization with QGIS. 
 
-We can now select a particular basin (using cat values for example) and subset the `RasterStack` accordingly.
+We can now select a particular basin (using cat values for example) and subset the `SpatRaster` accordingly.
 
 ```{r}
 bas = basins[basins$cat==3,] # get basin of interest
-tmp = mask(crop(st,bas),bas) # clip and crop the stack
+tmp = terra::mask(terra::crop(st,bas),bas) # clip and crop 
 plot(tmp$z)
 lines(bas)
 ```
@@ -162,13 +161,14 @@ lines(bas)
 The `get_outlets` function allows also to define outlets for a given Strahler order.
 
 ```{r}
-outlets_sto = get_outlets(st,strahler=3,gisBase=gisbase)
-basins_sto = get_basins(st,outlets_sto,gisBase=gisbase)
+outlets_sto = get_outlets(st,strahler=3)
+basins_sto = get_basins(st,outlets_sto,gisbase)
 ```
 We can plot these basins.
 
 ```{r}
-plot(st$z)
+plot(hill, col=grey(0:100/100), legend=FALSE, mar=c(2,2,1,4))
+plot(st$z, col=rainbow(25, alpha=0.35), add=TRUE)
 lines(basins_sto)
 points(outlets_sto,pch=21,bg="white",cex=1.5)
 ```
@@ -179,14 +179,15 @@ Another approach is to try to extract the largest possible basins from the DEM.
 Note that pixels with negative accumulation, where there is a possible contributions of areas located outside of the DEM, are not considered.
 
 ```{r}
-outlets_large = get_outlets(st,large=10e4,gisBase=gisbase) # we specify a minimum area in pixels
-basins_large = get_basins(st,outlets_large,gisBase=gisbase)
+outlets_large = get_outlets(st,large=10e4) # we specify a minimum area in pixels
+basins_large = get_basins(st,outlets_large,gisbase)
 ```
 
 And we plot these basins.
 
 ```{r}
-plot(st$z)
+plot(hill, col=grey(0:100/100), legend=FALSE, mar=c(2,2,1,4))
+plot(st$z, col=rainbow(25, alpha=0.35), add=TRUE)
 lines(basins_large)
 points(outlets_large,pch=21,bg="white",cex=1.5)
 ```
@@ -195,37 +196,36 @@ points(outlets_large,pch=21,bg="white",cex=1.5)
 
 ## For the whole network
 
-We use the `get_network` function to process the `RasterStack` object.
+We use the `get_network` function to process the `SpatRaster` object.
 
 ```{r message=TRUE, warning=TRUE}
-net = get_network(st,gisBase=gisbase)
-plot(st$z)
+net = get_network(st,gisbase)
+plot(net)
 ```
 
-We obtain a `SpatialLinesDataFrame` object, which contains the network as well as an attribute table with various information concerning the stream segments (the field `stream` correspond to `st_id` of the input `RasterStack`).
+We obtain a `SpatVector` object, which contains the network as well as an attribute table with various information concerning the stream segments (the field `stream` correspond to `st_id` layer of the input `SpatRaster`).
 We can plot this network, using the Strahler order of the streams segments for width.
 
 
 ```{r}
-plot(st$z)
-plot(net,lwd=net$strahler,col="blue",add=TRUE)
-writeOGR(net,"/tmp/network.gpkg",layer="network",driver="GPKG",overwrite_layer=TRUE)
+plot(hill, col=grey(0:100/100), legend=FALSE, mar=c(2,2,1,4))
+plot(st$z, col=rainbow(25, alpha=0.35), add=TRUE)
+lines(net,lwd=net$strahler,col="blue")
 ```
 
 
 ## For a particular basin
 
-We can also extract the network for a particular basin, after cropping and clipping the `RasterStack` to the contours of this basin.
+We can also extract the network for a particular basin, after cropping and clipping the `SpatRast` to the contours of this basin.
 
 ```{r}
 bas0 = basins[basins$cat==3,] # get basin of interest
-st0 = mask(crop(st,bas0),bas0) # clip and crop the stack
-ids = unique(st0$st_id) # get the stream ids located in the clipped stack
+st0 = terra::mask(terra::crop(st,bas0),bas0) # clip and crop 
+ids = terra::unique(st0$st_id)$st_id # get the stream ids located in the clipped area
 net0 = net[net$stream%in%ids,] # subset the network according to that
 plot(st0$z)
-lines(bas)
-plot(net0,lwd=net0$strahler,col="blue",add=TRUE)
-
+lines(bas0)
+lines(net0,lwd=net0$strahler,col="blue")
 ```
 
 
@@ -235,22 +235,22 @@ We can also extract the river profile quite easily. Let's obtain the largest bas
 
 ```{r}
 bas = basins_large[1,] # largest basin
-st0 = mask(crop(st,bas),bas) # clip and crop the stack
-ids = unique(st0$st_id) # get the stream ids located in the clipped stack
+st0 = terra::mask(terra::crop(st,bas),bas) # clip and crop 
+ids = terra::unique(st0$st_id)$st_id # get the stream ids located in the clipped area
 net0 = net[net$stream%in%ids,] # subset the network according to that
 ```
 
 We now identify the stream id corresponding to the stream with the largest accumulation inside the basin. We use the `get_streams` function to collect all the ids of stream segments moving upstream from this starting point.
 
 ```{r}
-id0 = st0$st_id[which.max(st0$acc)]# get id of stream from which we start 
+id0 = net0[which.max(net0$flow_accum)]$stream # get id of stream from which we start
 ids0 = get_streams(net0,id0,mode="up") # get upstream ids
 ```
 
-We now convert the stack as a dataframe, subset to keep only network pixel with ids corresponding to our selection, and ordering according to distance along stream.
+We now convert the `SpatRaster` as a dataframe, subset to keep only network pixels with ids corresponding to our selection, and ordering according to distance along stream.
 
 ```{r}
-stream0 = as.data.frame(st0) # convert to data frame
+stream0 = terra::as.data.frame(st0) # convert to data frame
 stream0 = stream0[stream0$st_id%in%ids0,] # select pixel along the profile
 stream0 =  stream0[order(stream0$dist),] # order
 plot(stream0$dist,stream0$z,type="l",lwd=3,xlab="Distance along stream (m)",ylab="Elevation (m)")

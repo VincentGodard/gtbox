@@ -9,11 +9,11 @@
 #'
 #' @param dem  Digital Elevation Model (SpatRaster)
 #' @param th_px Accumulation threshold in pixels to initiate a stream (integer)
-#' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others
+#' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others
 #' @param to_net Flag to compute distance to network (`dtn`) and elevation above network (`ean`) (optional)
 #' @param precip precipitation raster (m/a) to be used for annual discharge computation
 #'
-#' @return A SpatRaster with the following layers: `z` (DEM), `acc` (flow accumulation), `dir` (flow direction), `dist` (distance along network), `st_id` (stream id), `nxt_id` (id of the next downstream pixel), `bs_id` (sub basin id)
+#' @return A SpatRaster with the following layers: `z` (DEM), `acc` (flow accumulation), `dir` (flow direction), `dist` (distance along network), `st_id` (stream id), `sto` (Strahler orders of the stream segments), `bs_id` (sub basin id)
 #' Optionally
 #'
 #' @export
@@ -23,7 +23,7 @@ process_dem<-function(dem,th_px,gisBase,precip=NULL,to_net=FALSE){
   if(class(dem)[1]!="SpatRaster"){stop("dem must be a SpatRaster")}
 
   # start grass session and import dem
-  start_grass(dem,"dem",gisBase)
+  start_grass(dem,"dem",gisbase)
 
   dem2 = read_raster_from_grass("dem")
   names(dem2) <- "z"
@@ -210,11 +210,11 @@ get_outlets <- function(st,strahler=NA,large=NA,elevation=NA,gisBase=NA){
 #' This function relies on the following GRASS GIS modules :
 #' r.stream.basins (add-on to be installed)
 #'
-#' @param st  A RasterStack object from dem_process
-#' @param outlets  Outlets points (SpatialPointsDataFrame)
+#' @param st  A SpatRaster object from `dem_process`
+#' @param outlets  Outlets points (SpatVector)
 #' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #'
-#' @return A SpatialPolygonDataFrame with the corresponding basins. The attribute table of the outlets vector is transferred.
+#' @return A SpatVector with the corresponding basins. The attribute table of the outlets vector is transferred.
 #' @export
 #'
 #' @examples
