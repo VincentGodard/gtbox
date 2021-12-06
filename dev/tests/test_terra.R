@@ -7,10 +7,12 @@ data("dem_cevennes",package = "gtbox")
 dem = rast(dem_cevennes)
 rm(dem_cevennes)
 
+precip = dem/dem
 
 
 # compute stack and network
-#start_grass(dem,"dem",gisbase)
+st = process_dem(dem,th_px,gisBase=gisbase,precip=precip,to_net=TRUE)
 
 
-st = process_dem(dem,th_px,gisBase=gisbase)
+
+

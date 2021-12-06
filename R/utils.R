@@ -2,7 +2,7 @@
 #' Initiate a grass throwaway session with proper region definition
 #'
 #'
-#' @param rast  Raster to import (SpatRast)
+#' @param rast  Raster to import (SpatRaster)
 #' @param name for the raster in the location
 #' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others
 #'
@@ -140,9 +140,9 @@ get_srtm <- function(sp,buf=0.1) {
 #' The trim function from the raster package ony remove cols and rows full of NA
 #' Useful to get a nicely formatted raster grid after reprojection
 #'
-#' @param rast input raster
+#' @param rast input raster (SpatRaster)
 #'
-#' @return a trimmed raster
+#' @return a trimmed raster (SpatRaster)
 #' @export
 #'
 #' @examples

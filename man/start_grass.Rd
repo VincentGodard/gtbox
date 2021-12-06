@@ -7,7 +7,7 @@
 start_grass(rast, name, gisBase)
 }
 \arguments{
-\item{rast}{Raster to import (SpatRast)}
+\item{rast}{Raster to import (SpatRaster)}
 
 \item{name}{for the raster in the location}
 

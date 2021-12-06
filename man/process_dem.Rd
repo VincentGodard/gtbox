@@ -7,7 +7,7 @@
 process_dem(dem, th_px, gisBase, precip = NULL, to_net = FALSE)
 }
 \arguments{
-\item{dem}{Digital Elevation Model (RasterLayer)}
+\item{dem}{Digital Elevation Model (SpatRaster)}
 
 \item{th_px}{Accumulation threshold in pixels to initiate a stream (integer)}
 
@@ -18,7 +18,7 @@ process_dem(dem, th_px, gisBase, precip = NULL, to_net = FALSE)
 \item{to_net}{Flag to compute distance to network (`dtn`) and elevation above network (`ean`) (optional)}
 }
 \value{
-A RasterStack object with the following rasters: `z` (DEM), `acc` (flow accumulation), `dir` (flow direction), `dist` (distance along network), `st_id` (stream id), `nxt_id` (id of the next downstream pixel), `bs_id` (sub basin id)
+A SpatRaster with the following layers: `z` (DEM), `acc` (flow accumulation), `dir` (flow direction), `dist` (distance along network), `st_id` (stream id), `nxt_id` (id of the next downstream pixel), `bs_id` (sub basin id)
 Optionally
 }
 \description{

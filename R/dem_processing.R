@@ -7,66 +7,78 @@
 #' This function relies on the following GRASS GIS modules :
 #' r.watershed, r.stream.distance (add-on to be installed)
 #'
-#' @param dem  Digital Elevation Model (RasterLayer)
+#' @param dem  Digital Elevation Model (SpatRaster)
 #' @param th_px Accumulation threshold in pixels to initiate a stream (integer)
 #' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others
 #' @param to_net Flag to compute distance to network (`dtn`) and elevation above network (`ean`) (optional)
 #' @param precip precipitation raster (m/a) to be used for annual discharge computation
 #'
-#' @return A RasterStack object with the following rasters: `z` (DEM), `acc` (flow accumulation), `dir` (flow direction), `dist` (distance along network), `st_id` (stream id), `nxt_id` (id of the next downstream pixel), `bs_id` (sub basin id)
+#' @return A SpatRaster with the following layers: `z` (DEM), `acc` (flow accumulation), `dir` (flow direction), `dist` (distance along network), `st_id` (stream id), `nxt_id` (id of the next downstream pixel), `bs_id` (sub basin id)
 #' Optionally
 #'
 #' @export
 #'
 #' @examples
 process_dem<-function(dem,th_px,gisBase,precip=NULL,to_net=FALSE){
+  if(class(dem)[1]!="SpatRaster"){stop("dem must be a SpatRaster")}
 
-  # start grass session
+  # start grass session and import dem
   start_grass(dem,"dem",gisBase)
 
-  dem2 = raster(rgrass7::readRAST(c("dem")))
-  dem2@data@names <- "z"
+  dem2 = read_raster_from_grass("dem")
+  names(dem2) <- "z"
 
+  # compute accumulation, flow direction and streams/basins ids
+  rgrass7::execGRASS("r.watershed", flags=c("overwrite","s"), parameters=list(elevation="dem",
+                                                                              threshold=th_px,
+                                                                              accumulation="accumulation",
+                                                                              drainage="direction",
+                                                                              stream="streams",
+                                                                              basin="basins"))
+  acc = read_raster_from_grass("accumulation")
+  names(acc) <- "acc"
+  dir = read_raster_from_grass("direction")
+  names(dir) <- "dir"
+  st_id = read_raster_from_grass("streams")
+  names(st_id) <- "st_id"
+  bs_id = read_raster_from_grass("basins")
+  names(bs_id) <- "bs_id"
 
-
-  # compute accumulation
-  pars <- list(elevation="dem",threshold=th_px,accumulation="accumulation",drainage="direction",stream="streams",basin="basins")
-  rgrass7::execGRASS("r.watershed", flags=c("overwrite","s"), parameters=pars)
-  acc = raster(rgrass7::readRAST(c("accumulation")))
-  acc@data@names <- "acc"
-  dir = raster(rgrass7::readRAST(c("direction")))
-  dir@data@names <- "dir"
-  st_id = raster(rgrass7::readRAST(c("streams")))
-  st_id@data@names <- "st_id"
-  bs_id  = raster(rgrass7::readRAST(c("basins")))
-  bs_id@data@names <- "bs_id"
 
   # get next pixel
-  nxt_id = get_next(st_id,dir)
-  nxt_id@data@names <- "nxt_id"
+  #nxt_id = get_next(st_id,dir)
+  #nxt_id@data@names <- "nxt_id"
 
-  # distance along network
-  pars <- list(stream_rast="streams",direction="direction",distance="distance")
-  rgrass7::execGRASS("r.stream.distance", flags=c("overwrite","o"), parameters=pars)
-  dist = raster(rgrass7::readRAST(c("distance")))
-  dist@data@names <- "dist"
+  # compute distance along network
+  rgrass7::execGRASS("r.stream.distance", flags=c("overwrite","o"), parameters=list(stream_rast="streams",
+                                                                                    direction="direction",
+                                                                                    distance="distance"))
+  dist = read_raster_from_grass("distance")
+  names(dist) <- "dist"
 
-  rast_list = list(dem2,acc,dir,dist,st_id,nxt_id,bs_id)
+
+
+  rast_list = c(dem2,acc,dir,dist,st_id,bs_id)
 
   # distance  to network and  elevation above network
   if (to_net){
-    pars <- list(stream_rast="streams",direction="direction",elevation="dem",distance="dtn",difference="ean")
-    rgrass7::execGRASS("r.stream.distance", flags=c("overwrite"), parameters=pars)
-    dtn = raster(rgrass7::readRAST(c("dtn")))
-    dtn@data@names <- "dtn"
-    ean = raster(rgrass7::readRAST(c("ean")))
-    ean@data@names <- "ean"
+    rgrass7::execGRASS("r.stream.distance", flags=c("overwrite"),
+                       parameters=list(stream_rast="streams",
+                                       direction="direction",
+                                       elevation="dem",
+                                       distance="dtn",
+                                       difference="ean"))
+    dtn = read_raster_from_grass("dtn")
+    names(dtn) <- "dtn"
+    ean = read_raster_from_grass("ean")
+    names(ean) <- "ean"
     rast_list =  c(rast_list,dtn,ean)
   }
 
   # compute discharge if precipitation raster is provided
   if (!(is.null(precip))){
-    rgrass7::writeRAST(as(precip, 'SpatialGridDataFrame'),vname=c("precip"))
+    write_raster_to_grass(precip,"precip")
+
     rgrass7::execGRASS("r.watershed", flags=c("overwrite","s"),
                        parameters=list(elevation="dem",
                                        threshold=th_px,
@@ -74,19 +86,13 @@ process_dem<-function(dem,th_px,gisBase,precip=NULL,to_net=FALSE){
                                        drainage="tmp1",
                                        stream="tmp2",
                                        flow="precip"))
-    discharge = raster(rgrass7::readRAST(c("accumulation")))
-    discharge = discharge * res(dem)[1]*res(dem)[2]
-    discharge@data@names <- "discharge"
+    discharge = read_raster_from_grass("accumulation")
+    discharge = discharge * terra::res(dem)[1]*terra::res(dem)[2]
+    names(discharge) <- "discharge"
     rast_list =  c(rast_list,discharge)
   }
 
-  # create the stack
-  st = stack(rast_list)
-  crs(st) <- crs(dem)
-  res(st) <- res(dem)
-  extent(st) <- extent(dem)
-
-  return(st)
+  return(rast_list)
 }
 
 

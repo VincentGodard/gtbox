@@ -7,10 +7,10 @@
 trim_na(rst0)
 }
 \arguments{
-\item{rast}{input raster}
+\item{rast}{input raster (SpatRaster)}
 }
 \value{
-a trimmed raster
+a trimmed raster (SpatRaster)
 }
 \description{
 The trim function from the raster package ony remove cols and rows full of NA
