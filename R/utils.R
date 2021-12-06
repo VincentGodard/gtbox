@@ -8,6 +8,8 @@
 #'
 #' @return
 start_grass<-function(rast,name,gisBase){
+  if(class(rast)[1]!="SpatRaster"){stop("first argument must be a SpatRaster")}
+  if(!(is.character(name))){stop("second argument must be a character string")}
 
   rgrass7::use_sp()
 
@@ -145,6 +147,7 @@ get_srtm <- function(sp,buf=0.1) {
 #'
 #' @examples
 trim_na <- function(rst0){
+  if(class(rst0)[1]!="SpatRaster"){stop("argument must be a SpatRaster")}
   rst0 = terra::trim(rst0)
   #
   s1 = rst0[terra::nrow(rst0),]

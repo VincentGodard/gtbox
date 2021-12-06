@@ -10,7 +10,7 @@ rm(dem_cevennes)
 
 
 # compute stack and network
-start_grass(dem,"dem",gisbase)
+#start_grass(dem,"dem",gisbase)
 
 
 st = process_dem(dem,th_px,gisBase=gisbase)
