@@ -19,7 +19,7 @@
 #' @export
 #'
 #' @examples
-process_dem<-function(dem,th_px,gisBase,precip=NULL,to_net=FALSE){
+process_dem<-function(dem,th_px,gisbase,precip=NULL,to_net=FALSE){
   if(class(dem)[1]!="SpatRaster"){stop("dem must be a SpatRaster")}
 
   # start grass session and import dem
@@ -124,12 +124,13 @@ process_dem<-function(dem,th_px,gisBase,precip=NULL,to_net=FALSE){
 #' @param strahler The Strahler order of the outlets to be extracted
 #' @param large The minimum size (in pixels) for the extraction of the largest possible set of basins
 #' @param elevation The elevation of the outlets
+#' @param gisbase In the case of elevation option, the directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others
 #'
 #' @return a SpatVector with identified outlets
 #' @export
 #'
 #' @examples
-get_outlets <- function(st,strahler=NA,large=NA,elevation=NA,gisBase=NA){
+get_outlets <- function(st,strahler=NA,large=NA,elevation=NA,gisbase=NA){
   if(class(st)[1]!="SpatRaster"){stop("1st argument must be a SpatRaster")}
   if (is.na(strahler) & is.na(large) & is.na(elevation)){stop("Must specify one outlet selection option : strahler, large or elevation")}
   if (sum(c(!is.na(strahler),!is.na(large),!is.na(elevation)))>1){stop("Must specify only one outlet selection option")}
@@ -212,7 +213,7 @@ get_outlets <- function(st,strahler=NA,large=NA,elevation=NA,gisBase=NA){
 #'
 #' @param st  A SpatRaster object from `dem_process`
 #' @param outlets  Outlets points (SpatVector)
-#' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
+#' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #'
 #' @return A SpatVector with the corresponding basins. The attribute table of the outlets vector is transferred.
 #' @export
@@ -265,7 +266,7 @@ get_basins<-function(st,outlets,gisbase){
 #' r.stream.order (add-on to be installed)
 #'
 #' @param st  A SpatRast object from `process_dem`
-#' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
+#' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #' @param clip Remove parts with incomplete contributing areas (logical, default FALSE)
 #'
 #' @return A SpatVector with the corresponding network. The attribute table contains information about network topology.

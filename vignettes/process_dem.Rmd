@@ -85,7 +85,7 @@ The output will be organized as a multi-layers `SpatRaster`.
 ```{r warning=FALSE}
 gisbase = "/usr/lib/grass78/"
 th_px = 2000 # stream initiation threshold in pixels
-st = process_dem(dem,th_px,gisBase=gisbase)
+st = process_dem(dem,th_px,gisbase=gisbase)
 print(st)
 ```
 

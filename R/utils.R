@@ -4,10 +4,10 @@
 #'
 #' @param rast  Raster to import (SpatRaster)
 #' @param name for the raster in the location
-#' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others
+#' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others
 #'
 #' @return
-start_grass<-function(rast,name,gisBase){
+start_grass<-function(rast,name,gisbase){
   if(class(rast)[1]!="SpatRaster"){stop("first argument must be a SpatRaster")}
   if(!(is.character(name))){stop("second argument must be a character string")}
 
@@ -16,7 +16,7 @@ start_grass<-function(rast,name,gisBase){
   Sys.setenv("GRASS_VERBOSE"=0)
 
   # start grass
-  rgrass7::initGRASS(gisBase,override = TRUE)
+  rgrass7::initGRASS(gisbase,override = TRUE)
   # shift to PERMANENT
   rgrass7::execGRASS("g.mapset",parameters=list(mapset="PERMANENT"))
   # set projection

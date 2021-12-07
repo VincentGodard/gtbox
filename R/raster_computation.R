@@ -3,10 +3,10 @@
 #'
 #' This function is a frontend for GRASS module `v.rast.stats`
 #'
-#' @param vect the vector layer used for computation
-#' @param rast a `RasterLayer` representing the raster
+#' @param vect a `SpatVector` defining the locations/areas where the calculation will take place
+#' @param rast a `SpatRaster` representing the raster
 #' @param name a prefix for the statistics columns
-#' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
+#' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #'
 #'
 #' @return a vector with attribute table filled with statistics from the raster layer
@@ -40,7 +40,7 @@ compute_zonal_stats <- function(vect,rast,name,gisbase){
 #'
 #' @param rast a `RasterLayer` representing the raster (usually a Digital Elevation Model)
 #' @param win an odd integer (>=3) specifying the size of the computation window (in pixels)
-#' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
+#' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #' @param central Constrain fitted surface through central window cell (default TRUE)
 #' @param planar Compute planar curvature instead (default FALSE)
 #'
@@ -48,7 +48,7 @@ compute_zonal_stats <- function(vect,rast,name,gisbase){
 #' @export
 #'
 #' @examples
-compute_curvature <- function(rast,win,gisBase,central=TRUE,planar=FALSE){
+compute_curvature <- function(rast,win,gisbase,central=TRUE,planar=FALSE){
 
   if ((win<3) & (win%%2==0)){stop("win must be an odd integer >=3")}
 
@@ -59,7 +59,7 @@ compute_curvature <- function(rast,win,gisBase,central=TRUE,planar=FALSE){
   }
 
   # start grass session
-  start_grass(rast,"rast",gisBase)
+  start_grass(rast,"rast",gisbase)
   Sys.setenv(OMP_NUM_THREADS=1)
 
   if (!planar){
@@ -107,14 +107,14 @@ compute_curvature <- function(rast,win,gisBase,central=TRUE,planar=FALSE){
 #' @param rast a `RasterLayer` representing the raster (usually a Digital Elevation Model)
 #' @param win an odd integer (>=3) specifying the size of the computation window (in pixels)
 #' @param central Constrain fitted surface through central window cell (default TRUE)
-#' @param gisBase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
+#' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #'
 #'
 #' @return a slope raster
 #' @export
 #'
 #' @examples
-compute_slope <- function(rast,win,gisBase,central=TRUE){
+compute_slope <- function(rast,win,gisbase,central=TRUE){
 
   if ((win<3) & (win%%2==0)){stop("win must be an odd integer >=3")}
 
@@ -125,7 +125,7 @@ compute_slope <- function(rast,win,gisBase,central=TRUE){
   }
 
   # start grass session
-  start_grass(rast,"rast",gisBase)
+  start_grass(rast,"rast",gisbase)
   Sys.setenv(OMP_NUM_THREADS=1)
 
   rgrass7::execGRASS("r.param.scale", flags=c("overwrite"), parameters=list(input="rast",
