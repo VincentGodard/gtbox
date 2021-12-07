@@ -58,9 +58,9 @@ write_vector_to_grass <- function(vect,name){
   rgrass7::writeVECT(as(vect,"Spatial"),vname=c(name),v.in.ogr_flags=c("overwrite","o"))
 }
 
-read_vector_from_grass <- function(name){
+read_vector_from_grass <- function(name,layer=1){
   if(!(is.character(name))){stop("argument must be character string")}
-  vector = terra::vect(rgrass7::readVECT(c(name)))
+  vector = terra::vect(rgrass7::readVECT(c(name),layer=layer))
   return(vector)
 }
 
