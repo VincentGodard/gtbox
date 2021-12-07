@@ -4,7 +4,7 @@
 \alias{get_outlets}
 \title{Extract basins outlets locations with various approaches. These various options are mutually exclusives.}
 \usage{
-get_outlets(st, strahler = NA, large = NA, elevation = NA, gisBase = NA)
+get_outlets(st, strahler = NA, large = NA, elevation = NA, gisbase = NA)
 }
 \arguments{
 \item{st}{A SpatRaster multi-layers object from `dem_process`}
@@ -14,6 +14,8 @@ get_outlets(st, strahler = NA, large = NA, elevation = NA, gisBase = NA)
 \item{large}{The minimum size (in pixels) for the extraction of the largest possible set of basins}
 
 \item{elevation}{The elevation of the outlets}
+
+\item{gisbase}{In the case of elevation option, the directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others}
 }
 \value{
 a SpatVector with identified outlets

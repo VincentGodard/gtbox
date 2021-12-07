@@ -9,15 +9,19 @@ rm(dem_cevennes)
 
 precip = dem/dem
 
+# compute curvature
+C0 =  compute_curvature(dem,win=5,gisbase)
+S0 =  compute_slope(dem,win=5,gisbase)
 
 # compute stack and network (,precip=precip)
-st = process_dem(dem,th_px,gisBase=gisbase,to_net=FALSE)
+st = process_dem(dem,th_px,gisbase=gisbase,to_net=FALSE)
 
 net = get_network(st,gisbase,clip=TRUE)
 
 writeRaster(st$st_id,"/tmp/st.tif")
 
 #tmp = get_next(st$st_id,st$dir)
+
 
 slope <- terrain(st$z, "slope", unit="radians")
 aspect <- terrain(st$z, "aspect", unit="radians")
@@ -26,6 +30,24 @@ hill <- shade(slope, aspect, 40, 270)
 plot(hill, col=grey(0:100/100), legend=FALSE, mar=c(2,2,1,4))
 plot(st$z, col=rainbow(25, alpha=0.35), add=TRUE)
 lines(net,lwd=net$strahler,col="blue")
+
+# outlets strahler
+out = get_outlets(st,strahler = 2)
+bas = get_basins(st,out,gisbase)
+plot(hill, col=grey(0:100/100), legend=FALSE, mar=c(2,2,1,4))
+plot(st$z, col=rainbow(25, alpha=0.35), add=TRUE)
+lines(net,lwd=net$strahler,col="blue")
+lines(bas,lwd=2)
+points(out)
+
+# zonal stats
+library(tictoc)
+tic()
+tmp = compute_zonal_stats(bas,st$z,"alti",gisbase)
+toc()
+tic()
+tmp2 =extract(st$z,bas,fun="mean")
+toc()
 
 # outlets large
 out = get_outlets(st,large = 10e4)
@@ -45,14 +67,6 @@ id0 = net0[which.max(net0$flow_accum)]$stream # get id of stream from which we s
 ids0 = get_streams(net0,722,mode="down") # get upstream ids
 
 
-# outlets strahler
-out = get_outlets(st,strahler = 3)
-bas = get_basins(st,out,gisbase)
-plot(hill, col=grey(0:100/100), legend=FALSE, mar=c(2,2,1,4))
-plot(st$z, col=rainbow(25, alpha=0.35), add=TRUE)
-lines(net,lwd=net$strahler,col="blue")
-lines(bas,lwd=2)
-points(out)
 
 
 # outlets elevation

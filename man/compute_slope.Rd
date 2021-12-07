@@ -4,19 +4,19 @@
 \alias{compute_slope}
 \title{Compute slope over a raster}
 \usage{
-compute_slope(rast, win, gisBase, central = TRUE)
+compute_slope(rast, win, gisbase, central = TRUE)
 }
 \arguments{
-\item{rast}{a `RasterLayer` representing the raster (usually a Digital Elevation Model)}
+\item{rast}{a `SpatRaster` representing the raster (usually a Digital Elevation Model)}
 
 \item{win}{an odd integer (>=3) specifying the size of the computation window (in pixels)}
 
-\item{gisBase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
+\item{gisbase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
 
 \item{central}{Constrain fitted surface through central window cell (default TRUE)}
 }
 \value{
-a slope raster
+a gradient `SpatRaster` (in m/m)
 }
 \description{
 Fits quadratic surfaces at each pixel
@@ -25,7 +25,7 @@ Fits quadratic surfaces at each pixel
 The surfaces are parametrized as :
 z = ax^2 + by^2 +cxy +dx + ey + f
 
-
+Slope is calculated as S = (d^2 + e^2)^0.5
 
 the computation relies on GRASS GIS `r.param.scale` function
 }

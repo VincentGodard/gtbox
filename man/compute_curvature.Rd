@@ -4,21 +4,21 @@
 \alias{compute_curvature}
 \title{Compute curvature over a raster}
 \usage{
-compute_curvature(rast, win, gisBase, central = TRUE, planar = FALSE)
+compute_curvature(rast, win, gisbase, central = TRUE, planar = FALSE)
 }
 \arguments{
-\item{rast}{a `RasterLayer` representing the raster (usually a Digital Elevation Model)}
+\item{rast}{a `SpatRaster` representing the raster (usually a Digital Elevation Model)}
 
 \item{win}{an odd integer (>=3) specifying the size of the computation window (in pixels)}
 
-\item{gisBase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
+\item{gisbase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
 
 \item{central}{Constrain fitted surface through central window cell (default TRUE)}
 
 \item{planar}{Compute planar curvature instead (default FALSE)}
 }
 \value{
-a curvature raster
+a curvature `SpatRaster` (in 1/m)
 }
 \description{
 Fits quadratic surfaces at each pixel
@@ -27,7 +27,7 @@ Fits quadratic surfaces at each pixel
 The surface is parametrized as :
 z = ax^2 + by^2 +cxy +dx + ey + f
 
-curvature is C =  2a + 2b
+Curvature is calculated as C =  2a + 2b
 
 the computation relies on GRASS GIS `r.param.scale` function
 }

@@ -4,14 +4,14 @@
 \alias{start_grass}
 \title{Initiate a grass throwaway session with proper region definition}
 \usage{
-start_grass(rast, name, gisBase)
+start_grass(rast, name, gisbase)
 }
 \arguments{
 \item{rast}{Raster to import (SpatRaster)}
 
 \item{name}{for the raster in the location}
 
-\item{gisBase}{The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others}
+\item{gisbase}{The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others}
 }
 \value{
 

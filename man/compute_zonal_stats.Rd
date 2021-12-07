@@ -7,16 +7,16 @@
 compute_zonal_stats(vect, rast, name, gisbase)
 }
 \arguments{
-\item{vect}{the vector layer used for computation}
+\item{vect}{a `SpatVector` defining the locations/areas where the calculation will take place}
 
-\item{rast}{a `RasterLayer` representing the raster}
+\item{rast}{a `SpatRaster` representing the raster}
 
 \item{name}{a prefix for the statistics columns}
 
-\item{gisBase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
+\item{gisbase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
 }
 \value{
-a vector with attribute table filled with statistics from the raster layer
+a `SpatVector` with attribute table filled with statistics from the raster layer
 }
 \description{
 This function is a frontend for GRASS module `v.rast.stats`

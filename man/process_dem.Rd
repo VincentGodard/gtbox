@@ -4,21 +4,21 @@
 \alias{process_dem}
 \title{Perform initial computations on a Digital Elevation Model}
 \usage{
-process_dem(dem, th_px, gisBase, precip = NULL, to_net = FALSE)
+process_dem(dem, th_px, gisbase, precip = NULL, to_net = FALSE)
 }
 \arguments{
 \item{dem}{Digital Elevation Model (SpatRaster)}
 
 \item{th_px}{Accumulation threshold in pixels to initiate a stream (integer)}
 
-\item{gisBase}{The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others}
+\item{gisbase}{The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others}
 
 \item{precip}{precipitation raster (m/a) to be used for annual discharge computation}
 
 \item{to_net}{Flag to compute distance to network (`dtn`) and elevation above network (`ean`) (optional)}
 }
 \value{
-A SpatRaster with the following layers: `z` (DEM), `acc` (flow accumulation), `dir` (flow direction), `dist` (distance along network), `st_id` (stream id), `nxt_id` (id of the next downstream pixel), `bs_id` (sub basin id)
+A SpatRaster with the following layers: `z` (DEM), `acc` (flow accumulation), `dir` (flow direction), `dist` (distance along network), `st_id` (stream id), `sto` (Strahler orders of the stream segments), `bs_id` (sub basin id)
 Optionally
 }
 \description{

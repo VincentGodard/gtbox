@@ -9,19 +9,18 @@
 #' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #'
 #'
-#' @return a vector with attribute table filled with statistics from the raster layer
+#' @return a `SpatVector` with attribute table filled with statistics from the raster layer
 #' @export
 #'
 #' @examples
 compute_zonal_stats <- function(vect,rast,name,gisbase){
   start_grass(rast,"rast",gisbase)
-  rgrass7::writeVECT(vect,vname=c("vect"),v.in.ogr_flags=c("overwrite","o"))
+  write_vector_to_grass(vect,"vect")
   rgrass7::execGRASS("v.rast.stats", flags=c("c"),
                      parameters=list(map="vect",
                                      raster="rast",
                                      column_prefix=name))
-  res = rgrass7::readVECT(c("vect"))
-  crs(res)<-crs(vect)
+  res = read_vector_from_grass("vect")
   return(res)
 }
 
@@ -34,17 +33,17 @@ compute_zonal_stats <- function(vect,rast,name,gisbase){
 #' The surface is parametrized as :
 #' z = ax^2 + by^2 +cxy +dx + ey + f
 #'
-#' curvature is C =  2a + 2b
+#' Curvature is calculated as C =  2a + 2b
 #'
 #' the computation relies on GRASS GIS `r.param.scale` function
 #'
-#' @param rast a `RasterLayer` representing the raster (usually a Digital Elevation Model)
+#' @param rast a `SpatRaster` representing the raster (usually a Digital Elevation Model)
 #' @param win an odd integer (>=3) specifying the size of the computation window (in pixels)
 #' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #' @param central Constrain fitted surface through central window cell (default TRUE)
 #' @param planar Compute planar curvature instead (default FALSE)
 #'
-#' @return a curvature raster
+#' @return a curvature `SpatRaster` (in 1/m)
 #' @export
 #'
 #' @examples
@@ -64,30 +63,29 @@ compute_curvature <- function(rast,win,gisbase,central=TRUE,planar=FALSE){
 
   if (!planar){
 
-    rgrass7::execGRASS("r.param.scale", flags=fl, parameters=list(input="rast",
-                                                                  output="r_maxic",
-                                                                  method="maxic",
-                                                                  size=win))
+    rgrass7::execGRASS("r.param.scale", flags=fl,
+                       parameters=list(input="rast",
+                       output="r_maxic",
+                       method="maxic",
+                       size=win))
 
-    rgrass7::execGRASS("r.param.scale", flags=fl, parameters=list(input="rast",
-                                                                  output="r_minic",
-                                                                  method="minic",
-                                                                  size=win))
+    rgrass7::execGRASS("r.param.scale", flags=fl,
+                       parameters=list(input="rast",
+                       output="r_minic",
+                       method="minic",
+                       size=win))
 
     rgrass7::execGRASS("r.mapcalc", expression="curv = r_maxic + r_minic")
 
   }else{
-    rgrass7::execGRASS("r.param.scale", flags=fl, parameters=list(input="rast",
-                                                                  output="curv",
-                                                                  method="planc",
-                                                                  size=win))
+    rgrass7::execGRASS("r.param.scale", flags=fl,
+                       parameters=list(input="rast",
+                       output="curv",
+                       method="planc",
+                       size=win))
   }
 
-  curv = raster::raster(rgrass7::readRAST(c("curv")))
-
-  crs(curv) <- crs(rast)
-  extent(curv) <- extent(rast)
-
+  curv = read_raster_from_grass("curv")
   return(curv)
 }
 
@@ -100,17 +98,17 @@ compute_curvature <- function(rast,win,gisbase,central=TRUE,planar=FALSE){
 #' The surfaces are parametrized as :
 #' z = ax^2 + by^2 +cxy +dx + ey + f
 #'
-#'
+#' Slope is calculated as S = (d^2 + e^2)^0.5
 #'
 #' the computation relies on GRASS GIS `r.param.scale` function
 #'
-#' @param rast a `RasterLayer` representing the raster (usually a Digital Elevation Model)
+#' @param rast a `SpatRaster` representing the raster (usually a Digital Elevation Model)
 #' @param win an odd integer (>=3) specifying the size of the computation window (in pixels)
 #' @param central Constrain fitted surface through central window cell (default TRUE)
 #' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others
 #'
 #'
-#' @return a slope raster
+#' @return a gradient `SpatRaster` (in m/m)
 #' @export
 #'
 #' @examples
@@ -128,16 +126,13 @@ compute_slope <- function(rast,win,gisbase,central=TRUE){
   start_grass(rast,"rast",gisbase)
   Sys.setenv(OMP_NUM_THREADS=1)
 
-  rgrass7::execGRASS("r.param.scale", flags=c("overwrite"), parameters=list(input="rast",
-                                                                            output="slope",
-                                                                            method="slope",
-                                                                            size=win))
+  rgrass7::execGRASS("r.param.scale", flags=c("overwrite"),
+                     parameters=list(input="rast",
+                     output="slope",
+                     method="slope",
+                     size=win))
 
-  slope = raster::raster(rgrass7::readRAST(c("slope")))
-
-  crs(slope) <- crs(rast)
-  extent(slope) <- extent(rast)
-
+  slope = read_raster_from_grass("slope")
+  slope = tan(slope/180*pi)
   return(slope)
-
 }

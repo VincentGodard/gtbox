@@ -9,9 +9,9 @@ get_network(st, gisbase, clip = FALSE)
 \arguments{
 \item{st}{A SpatRast object from `process_dem`}
 
-\item{clip}{Remove parts with incomplete contributing areas (logical, default FALSE)}
+\item{gisbase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
 
-\item{gisBase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
+\item{clip}{Remove parts with incomplete contributing areas (logical, default FALSE)}
 }
 \value{
 A SpatVector with the corresponding network. The attribute table contains information about network topology.

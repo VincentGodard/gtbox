@@ -7,14 +7,14 @@
 get_basins(st, outlets, gisbase)
 }
 \arguments{
-\item{st}{A RasterStack object from dem_process}
+\item{st}{A SpatRaster object from `dem_process`}
 
-\item{outlets}{Outlets points (SpatialPointsDataFrame)}
+\item{outlets}{Outlets points (SpatVector)}
 
-\item{gisBase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
+\item{gisbase}{The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others}
 }
 \value{
-A SpatialPolygonDataFrame with the corresponding basins. The attribute table of the outlets vector is transferred.
+A SpatVector with the corresponding basins. The attribute table of the outlets vector is transferred.
 }
 \description{
 Follow the largest accumulation tributary at confluences when moving upstream
