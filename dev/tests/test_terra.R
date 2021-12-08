@@ -1,4 +1,6 @@
 library("gtbox")
+library("terra")
+
 
 gisbase = "/usr/lib/grass78/"
 th_px = 2000 # stream initiation threshold in pixels

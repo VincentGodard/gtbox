@@ -16,9 +16,11 @@ start_grass<-function(rast,name,gisbase){
   Sys.setenv("GRASS_VERBOSE"=0)
 
   # start grass
-  rgrass7::initGRASS(gisbase,override = TRUE)
-  # shift to PERMANENT
-  rgrass7::execGRASS("g.mapset",parameters=list(mapset="PERMANENT"))
+  rgrass7::initGRASS(gisbase,home=tempdir(),mapset="PERMANENT",override = TRUE)
+
+  # # start grass
+  # rgrass7::initGRASS(gisbase,mapset="PERMANENT",override = TRUE)
+
   # set projection
   crs0 = as.character(terra::crs(rast,proj=TRUE))
   rgrass7::execGRASS("g.proj",flags=c("c"),
