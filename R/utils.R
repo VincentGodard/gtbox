@@ -88,15 +88,16 @@ read_vector_from_grass <- function(name,layer=1){
 trim_na <- function(rst0){
   if(class(rst0)[1]!="SpatRaster"){stop("argument must be a SpatRaster")}
   rst0 = terra::trim(rst0)
+  m0 = terra::as.matrix(rst0,wide=TRUE)
   #
-  s1 = rst0[terra::nrow(rst0),]
-  a1 = (1:terra::ncol(rst0))[!is.na(s1)]
-  s3 = rst0[1,]
-  a3 = (1:terra::ncol(rst0))[!is.na(s3)]
-  s2 = rst0[,1]
-  a2 = (1:terra::nrow(rst0))[!is.na(s2)]
-  s4 = rst0[,terra::ncol(rst0)]
-  a4 = (1:terra::nrow(rst0))[!is.na(s4)]
+  s1 = m0[terra::nrow(m0),]
+  a1 = (1:terra::ncol(m0))[!is.na(s1)]
+  s3 = m0[1,]
+  a3 = (1:terra::ncol(m0))[!is.na(s3)]
+  s2 = m0[,1]
+  a2 = (1:terra::nrow(m0))[!is.na(s2)]
+  s4 = m0[,terra::ncol(m0)]
+  a4 = (1:terra::nrow(m0))[!is.na(s4)]
   #
   lc = range(a1,a3)
   lr = range(a2,a4)
