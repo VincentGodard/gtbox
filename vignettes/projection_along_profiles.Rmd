@@ -22,47 +22,46 @@ We load a number of packages that will be used
 
 ```{r message=FALSE, warning=FALSE}
 library("gtbox")
-library("raster")
-library("rgdal")
-library("sp")
-library("rgeos")
-
+library("terra")
+library("sf")
 ```
 
 We load and reproject a Digital Elevation Model over the Cévennes area in SE France.
 ```{r}
 data("dem_cevennes",package = "gtbox")
-dem = dem_cevennes
+dem = terra::rast(dem_cevennes)
 rm(dem_cevennes)
-#dem0 = raster("srtm_cevennes.tif") # we could import our own DEM this way
-dem <- projectRaster(dem, crs="EPSG:32631",res=30,method="bilinear") # project to UTM 31N
-dem = trim_na(dem) # we trim to get a nice rectangular DEM with no NA on the sides
+plot(dem)
 ```
 
 
-First we can read a vector file containing the trace of the profile, define a width `W` and plot the corresponding buffer.
+First we can define the trace of the profile (using the coordinates of the start and end points), the width `w_buf` and plot the corresponding buffer.
 
 ```{r }
-data("profile_cevennes") # importing the profile
-profile = profile_cevennes
-rm(profile_cevennes)
-#profile = readOGR("../data/profile_cevennes.gpkg",verbose=FALSE) # we could import our own data this way
-W = 5e3 # define the one sided width of the swath in m
-plot(dem,col=terrain.colors(100,rev = FALSE))
-lines(profile,lwd=2)
-lines(gBuffer(profile,width=W,capStyle = "FLAT")) # plot a buffer on the map
+# start (1) and end (2) points of the projection line
+x1 = 583695
+y1 = 4875921
+x2 = 550939
+y2 = 4907255
+
+w_buf = 5e3 # width 
+# projection line
+l1 = terra::vect(matrix(c(x1,y1,x2,y2),ncol =2,byrow=T),
+                 type="lines",crs=crs(dem))
+# swath 
+bf = terra::vect(st_buffer(st_as_sf(l1),dist=w_buf,
+                    endCapStyle = "FLAT",joinStyle = "ROUND"))
+plot(dem)
+lines(l1)
+lines(bf,lty=2)
 ```
 
-Then we extract the start and end points of the profile from the line (we could also define them manually).
+Then we project the DEM data along the profile, using `swath_profile` function.
 We will use `inc` bins along the profile.
 
 ```{r }
-x1 =  profile@lines[[1]]@Lines[[1]]@coords[1,1]
-y1 =  profile@lines[[1]]@Lines[[1]]@coords[1,2]
-x2 =  profile@lines[[1]]@Lines[[1]]@coords[2,1]
-y2 =  profile@lines[[1]]@Lines[[1]]@coords[2,2]
 inc = 100 # number of bins along the profile
-data = swath_profile(dem,x1,y1,x2,y2,W,100) # computation of the swath profile
+data = swath_profile(dem,x1,y1,x2,y2,w_buf,100) # computation of the swath profile
 ```
 
 The output is the following table with `r inc` rows, containing the basic statistics for each bin.

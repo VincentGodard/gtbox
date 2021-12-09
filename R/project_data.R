@@ -80,10 +80,13 @@ project_points<-function(x,y,X1,Y1,X2,Y2,width=NULL,inc=NULL,value=NULL){
 swath_profile <- function(rast,X1,Y1,X2,Y2,width,inc){
   # notations http://www.sunshine2k.de/coding/java/PointOnLine/PointOnLine.html#step5
   # create line
-  ln1 <- sp::SpatialLines(list(sp::Lines(list(sp::Line(matrix(c(X1,X2,Y1,Y2),ncol=2))),1)))
+  ln1 = terra::vect(matrix(c(x1,y1,x2,y2),ncol =2,byrow=T),
+                    type="lines",crs=crs(rast))
   # create buffer
-  bf1 = raster::buffer(ln1,width)
-  tmp = na.omit(raster::as.data.frame(raster::mask(raster::crop(rast,bf1),bf1),xy=TRUE))
+  bf1 = terra::vect(sf::st_buffer(sf::st_as_sf(l1),dist=width,
+                                 endCapStyle = "FLAT",joinStyle = "ROUND"))
+
+  tmp = na.omit(terra::as.data.frame(terra::mask(rast,bf1),xy=TRUE))
   colnames(tmp) <- c("x","y","val")
   # project
   e1_x = X2-X1
