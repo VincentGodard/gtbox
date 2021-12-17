@@ -82,7 +82,7 @@
       <h1 data-toc-skip>Simple Digital Elevation Model operations</h1>
                         <h4 class="author">Vincent Godard</h4>
             
-            <h4 class="date">2021-11-23</h4>
+            <h4 class="date">2021-12-17</h4>
       
       
       <div class="hidden name"><code>process_dem.Rmd</code></div>
@@ -101,81 +101,76 @@
 <li>extracting basins</li>
 <li>extracting river profiles</li>
 </ul>
-<p>The first thing we have to do is to load the <code>gtbox</code> package (once it has been installed). It is required to have GRASS GIS (version 7) installed, as some of the functions used here will rely heavily on GRASS raster processing modules (through the <code>rgrass7</code> package). It will also be necessary to install the following Addons (through the command g.extension in a GRASS session) :</p>
+<p>The first thing we have to do is to load the <code>gtbox</code> package (once it has been installed). It is required to have GRASS GIS (version 7) installed, as some of the functions used here will rely heavily on GRASS raster processing modules (through the <code>rgrass7</code> package). It will also be necessary to install the following Addons (through the command <code>g.extension</code> in a GRASS session) :</p>
 <ul>
 <li><code>r.stream.distance</code></li>
 <li><code>r.stream.basins</code></li>
 <li><code>r.stream.order</code></li>
 </ul>
+<p>Note that we will use the <code>terra</code> package for most geospatial operations in R. We will use the standard formats from this package : <code>SpatRaster</code> for raster layers (eventually with multiple layers) and <code>SpatVector</code> for vector layers.</p>
+<p>More information on the terra package can be found here :</p>
+<ul>
+<li><a href="https://rspatial.org/terra/index.html">https://rspatial.org/terra/index.html</a></li>
+</ul>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st">"gtbox"</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://rspatial.org/raster">"raster"</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="http://rgdal.r-forge.r-project.org">"rgdal"</a></span><span class="op">)</span></code></pre></div>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://rspatial.org/terra/">"terra"</a></span><span class="op">)</span></code></pre></div>
 </div>
 <div id="importing-a-dem" class="section level1">
 <h1 class="hasAnchor">
 <a href="#importing-a-dem" class="anchor"></a>Importing a DEM</h1>
 <p>The typical workflow consists in reading a Digital Elevation Model (DEM) and computing a number of basic rasters (flow accumulation and direction, etc …) which will be used as a basis for further processing.</p>
-<p>We start by reading and plotting a DEM using the. This is a SRTM DEM (1’’) over the Cévennes area in SE France (downloaded from <a href="https://opentopography.org/">opentopography.org</a>), which is included in the <code>gtbox</code> package. Alternatively we could import a DEM using the <code>raster</code> function of the <code>raster</code> package.</p>
+<p>We start by reading and plotting a DEM using the. This is a SRTM DEM (1’’) over the Cévennes area in SE France (downloaded from <a href="https://opentopography.org/">opentopography.org</a>), which is included in the <code>gtbox</code> package. Alternatively we could import a DEM using the <code>rast</code> function of the <code>terra</code> package.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"dem_cevennes"</span>,package <span class="op">=</span> <span class="st">"gtbox"</span><span class="op">)</span>
-<span class="va">dem0</span> <span class="op">=</span> <span class="va">dem_cevennes</span>
+<span class="va">dem</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html">rast</a></span><span class="op">(</span><span class="va">dem_cevennes</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span><span class="va">dem_cevennes</span><span class="op">)</span>
-<span class="co">#dem0 = raster("srtm_cevennes.tif") # we could import our own DEM this way</span>
-<span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">dem0</span><span class="op">)</span></code></pre></div>
+<span class="co">#dem = terra::rast("srtm_cevennes.tif") # we could import our own DEM this way</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">dem</span><span class="op">)</span></code></pre></div>
 <p><img src="process_dem_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
 <p>And here are the properties of this raster.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">dem0</span><span class="op">)</span></code></pre></div>
-<pre><code>## class      : RasterLayer 
-## dimensions : 1568, 2258, 3540544  (nrow, ncol, ncell)
-## resolution : 0.0002777778, 0.0002777778  (x, y)
-## extent     : 3.495139, 4.122361, 43.96764, 44.40319  (xmin, xmax, ymin, ymax)
-## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## source     : /home/vincent/Documents/development/R_packages/gtbox/dev/data/srtm_cevennes.tif 
-## names      : srtm_cevennes 
-## values     : -32768, 32767  (min, max)</code></pre>
-<p>This raster grid is defined in terms of latitude and longitude over the WGS84 datum, so we first need to project the raster to work with a cartesian grid :</p>
-<ul>
-<li>toward UTM 31N (<em>EPSG: 32631</em>)</li>
-<li>with a 30 m resolution</li>
-<li>using a bilinear interpolation (nearest neighbor interpolation is not optimal for continuous variables)</li>
-</ul>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">dem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/projectRaster.html">projectRaster</a></span><span class="op">(</span><span class="va">dem0</span>, crs<span class="op">=</span><span class="st">"EPSG:32631"</span>,res<span class="op">=</span><span class="fl">30</span>,method<span class="op">=</span><span class="st">"bilinear"</span><span class="op">)</span>
-<span class="va">dem</span> <span class="op">=</span> <span class="fu"><a href="../reference/trim_na.html">trim_na</a></span><span class="op">(</span><span class="va">dem</span><span class="op">)</span> <span class="co"># we trim to get a nice rectangular DEM with no NA on the sides</span>
-<span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">dem</span><span class="op">)</span></code></pre></div>
-<p><img src="process_dem_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
-<p>And here are the properties of this raster.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">dem</span><span class="op">)</span></code></pre></div>
-<pre><code>## class      : RasterLayer 
-## dimensions : 1597, 1655, 2643035  (nrow, ncol, ncell)
-## resolution : 30, 30  (x, y)
-## extent     : 539727.5, 589377.5, 4868879, 4916789  (xmin, xmax, ymin, ymax)
-## crs        : +proj=utm +zone=31 +datum=WGS84 +units=m +no_defs 
-## source     : memory
-## names      : srtm_cevennes 
-## values     : 85.21544, 1673.529  (min, max)</code></pre>
+<pre><code>## class       : SpatRaster 
+## dimensions  : 1596, 1654, 1  (nrow, ncol, nlyr)
+## resolution  : 30, 30  (x, y)
+## extent      : 539757.5, 589377.5, 4868879, 4916759  (xmin, xmax, ymin, ymax)
+## coord. ref. : WGS 84 / UTM zone 31N (EPSG:32631) 
+## source      : memory 
+## name        : srtm_cevennes_utm 
+## min value   :                85 
+## max value   :              1672</code></pre>
+<p>We can compute a hillshade surface and use some transparency on the DEM for a nicer display.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">slope</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/terrain.html">terrain</a></span><span class="op">(</span><span class="va">dem</span>, <span class="st">"slope"</span>, unit<span class="op">=</span><span class="st">"radians"</span><span class="op">)</span>
+<span class="va">aspect</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/terrain.html">terrain</a></span><span class="op">(</span><span class="va">dem</span>, <span class="st">"aspect"</span>, unit<span class="op">=</span><span class="st">"radians"</span><span class="op">)</span>
+<span class="va">hill</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/shade.html">shade</a></span><span class="op">(</span><span class="va">slope</span>, <span class="va">aspect</span>, <span class="fl">40</span>, <span class="fl">270</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">hill</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/gray.html">grey</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">100</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span>, legend<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">dem</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html">rainbow</a></span><span class="op">(</span><span class="fl">25</span>, alpha<span class="op">=</span><span class="fl">0.35</span><span class="op">)</span>, add<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<p><img src="process_dem_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 </div>
 <div id="processing-the-dem" class="section level1">
 <h1 class="hasAnchor">
 <a href="#processing-the-dem" class="anchor"></a>Processing the DEM</h1>
-<p>Then we use the <code>process_dem</code> function to launch an analysis of the DEM and compute various associated rasters. This part of the treatment relies on GRASS GIS, as this function will call some GRASS GIS modules, so we need to explain where to find them on the system with the <code>gisBase</code> argument. The other important argument is the accumulation value (number of pixels) for channel initiation. The output will be organized as a <code>RasterStack</code>, which is a collection of rasters with same extent and resolution.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<p>Then we use the <code>process_dem</code> function to launch an analysis of the DEM and compute various associated rasters. This part of the treatment relies on GRASS GIS, as this function will call some GRASS GIS modules, so we need to explain where to find them on the system with the <code>gisbase</code> argument. The other important argument is the accumulation value (number of pixels) for channel initiation. The output will be organized as a multi-layers <code>SpatRaster</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">gisbase</span> <span class="op">=</span> <span class="st">"/usr/lib/grass78/"</span>
 <span class="va">th_px</span> <span class="op">=</span> <span class="fl">2000</span> <span class="co"># stream initiation threshold in pixels</span>
-<span class="va">st</span> <span class="op">=</span> <span class="fu"><a href="../reference/process_dem.html">process_dem</a></span><span class="op">(</span><span class="va">dem</span>,<span class="va">th_px</span>,gisBase<span class="op">=</span><span class="va">gisbase</span><span class="op">)</span>
+<span class="va">st</span> <span class="op">=</span> <span class="fu"><a href="../reference/process_dem.html">process_dem</a></span><span class="op">(</span><span class="va">dem</span>,<span class="va">th_px</span>,gisbase<span class="op">=</span><span class="va">gisbase</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">st</span><span class="op">)</span></code></pre></div>
-<pre><code>## class      : RasterStack 
-## dimensions : 1597, 1655, 2643035, 7  (nrow, ncol, ncell, nlayers)
-## resolution : 30, 30  (x, y)
-## extent     : 539727.5, 589377.5, 4868879, 4916789  (xmin, xmax, ymin, ymax)
-## crs        : +proj=utm +zone=31 +datum=WGS84 +units=m +no_defs 
-## names      :             z,           acc,           dir,          dist,         st_id,        nxt_id,         bs_id 
-## min values :      85.21544, -689770.00000,      -8.00000,       0.00000,       2.00000,       2.00000,       2.00000 
-## max values :      1673.529,    679069.000,         8.000,     68395.167,      1328.000,      1328.000,      1328.000</code></pre>
-<p>This stack contains the following rasters (plus eventually some other optional rasters) :</p>
+<pre><code>## class       : SpatRaster 
+## dimensions  : 1596, 1654, 7  (nrow, ncol, nlyr)
+## resolution  : 30, 30  (x, y)
+## extent      : 539757.5, 589377.5, 4868879, 4916759  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=31 +ellps=WGS84 +units=m +no_defs 
+## sources     : memory  
+##               memory  
+##               memory  
+##               ... and 4 more source(s)
+## names       :         z,       acc,       dir,      dist,     st_id,     bs_id, ... 
+## min values  :        85,   -689502,        -8,         0,         2,         2, ... 
+## max values  :   1672.00, 681292.00,      8.00,  66746.57,   1312.00,   1312.00, ...</code></pre>
+<p>This <code>SpatRaster</code> the following layers (plus eventually some other optional layers) :</p>
 <table class="table">
 <colgroup>
 <col width="50%">
@@ -207,8 +202,8 @@
 <td>Stream segments unique identifiers (integer) computed with GRASS module r.watershed</td>
 </tr>
 <tr class="even">
-<td>nxt_id</td>
-<td>Stream segment id associated with next pixel following flow direction</td>
+<td>sto</td>
+<td>Strahler orders of the stream segments</td>
 </tr>
 <tr class="odd">
 <td>bs_id</td>
@@ -216,96 +211,102 @@
 </tr>
 </tbody>
 </table>
-<p>We can export the stream raster (<code>st_id</code>) for vizualisation purposes in a GIS (e.g. QGIS). We coerce the RasterLayer object stored in the <code>RasterStack</code> into a <code>SpatialGridDataFrame</code> object prior to exporting into a GeoTif raster.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">writeGDAL</a></span><span class="op">(</span><span class="fu">as</span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">st_id</span>, <span class="st">'SpatialGridDataFrame'</span><span class="op">)</span>,<span class="st">"/tmp/streams.tif"</span><span class="op">)</span></code></pre></div>
+<p>We can export the stream raster (<code>st_id</code>) for visualization purposes in a GIS (e.g. QGIS). We extract the corresponding <code>SpatRaster</code> layer prior to exporting into a GeoTif raster.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/writeRaster.html">writeRaster</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">st_id</span>,<span class="st">"/tmp/streams.tif"</span>,overwrite<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="extracting-basins" class="section level1">
 <h1 class="hasAnchor">
 <a href="#extracting-basins" class="anchor"></a>Extracting basins</h1>
-<p>Now that we have our raster layers computed and neatly organized in the stack, we want to extract some basins to process.</p>
+<p>Now that we have our raster layers computed and neatly organized, we want to extract some basins to process.</p>
 <div id="using-user-defined-outlets" class="section level2">
 <h2 class="hasAnchor">
 <a href="#using-user-defined-outlets" class="anchor"></a>Using user-defined outlets</h2>
 <p>We can first import some corresponding outlets, which should be positioned on the river network pixels (that’s why we exported the <code>streams.tif</code> raster above).</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"outlets_cevennes"</span>,package <span class="op">=</span> <span class="st">"gtbox"</span><span class="op">)</span>
-<span class="va">outlets</span> <span class="op">=</span> <span class="va">outlets_cevennes</span>
+<span class="va">outlets</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/vect.html">vect</a></span><span class="op">(</span><span class="va">outlets_cevennes</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span><span class="va">outlets_cevennes</span><span class="op">)</span>
-<span class="co">#outlets = readOGR("../data/outlets_cevennes.gpkg") # we could import our own outlets this way (EPSG:32631)</span></code></pre></div>
-<p>Once the outlets positions have been imported as <code>SpatialPointsDataFrame</code> object, they can be used to compute the corresponding basins using the <code>get_basins</code> function (it again relies on GRASS modules), which require the flow direction raster (<code>dir</code>) from our <code>RasterStack</code> as an input.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">basins</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_basins.html">get_basins</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">dir</span>,<span class="va">outlets</span>,gisBase<span class="op">=</span><span class="va">gisbase</span><span class="op">)</span></code></pre></div>
+<span class="co">#outlets = terra::vect("../data/outlets_cevennes.gpkg") # we could import our own outlets this way (EPSG:32631)</span></code></pre></div>
+<p>Once the outlets positions have been imported as <code>SpatVector</code> object, they can be used to compute the corresponding basins using the <code>get_basins</code> function (it again relies on GRASS modules), which require the flow direction raster (<code>dir</code>) from our <code>SpatRaster</code> as an input.</p>
+<p>We can export the vector to the GeoPackage format for external visualization with QGIS.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">basins</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_basins.html">get_basins</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">outlets</span>,<span class="va">gisbase</span><span class="op">)</span></code></pre></div>
 <pre><code>## OGR data source with driver: GPKG 
-## Source: "/tmp/RtmprANl9m/file1f1c25142b6b/file1f1c55978ab0/.tmp/vincent-Latitude-5480/165.0.gpkg", layer: "basins"
+## Source: "/tmp/RtmpdpCDij/filed62260b579f6/PERMANENT/.tmp/vincent-Latitude-5480/455.0.gpkg", layer: "basins"
 ## with 5 features
 ## It has 4 fields</code></pre>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/writeOGR.html">writeOGR</a></span><span class="op">(</span><span class="va">basins</span>,<span class="st">"/tmp/basins.gpkg"</span>,layer<span class="op">=</span><span class="st">"basins"</span>,driver<span class="op">=</span><span class="st">"GPKG"</span>,overwrite_layer<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/terra/man/writeVector.html">writeVector</a></span><span class="op">(</span><span class="va">basins</span>,<span class="st">"/tmp/basins.gpkg"</span>,overwrite<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">basins</span><span class="op">)</span></code></pre></div>
-<pre><code>## class       : SpatialPolygonsDataFrame 
-## features    : 5 
-## extent      : 548217.5, 586647.5, 4879139, 4907669  (xmin, xmax, ymin, ymax)
-## crs         : +proj=utm +zone=31 +datum=WGS84 +units=m +no_defs 
-## variables   : 4
-## names       : cat, label,  field1, field2 
-## min values  :   1,      , basin 1,    ccc 
-## max values  :   5,      , basin 5,    zzz</code></pre>
+<pre><code>##  class       : SpatVector 
+##  geometry    : polygons 
+##  dimensions  : 5, 4  (geometries, attributes)
+##  extent      : 548217.5, 586647.5, 4879139, 4907669  (xmin, xmax, ymin, ymax)
+##  coord. ref. : +proj=utm +zone=31 +ellps=WGS84 +units=m +no_defs 
+##  names       : cat label  field1 field2
+##  type        :   1     1       1      1
+##  values      :   1       basin 1    ccc
+##                  2       basin 2    ddd
+##                  3       basin 3    fff</code></pre>
 <p>We can then plot these basins and their outlets on a map.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">z</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">basins</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">outlets</span>,pch<span class="op">=</span><span class="fl">21</span>,bg<span class="op">=</span><span class="st">"white"</span>,cex<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/pkg/raster/man/text.html">text</a></span><span class="op">(</span><span class="va">outlets</span>,<span class="va">basins</span><span class="op">$</span><span class="va">cat</span>,cex<span class="op">=</span><span class="fl">0.7</span><span class="op">)</span></code></pre></div>
-<p><img src="process_dem_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
-<p>The attribute table of the outlets vector is passed to the new basins vector. We can export the vector to the GeoPackage format for external visualization with QGIS.</p>
-<p>We can now select a particular basin (using cat values for example) and subset the <code>RasterStack</code> accordingly.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">hill</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/gray.html">grey</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">100</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span>, legend<span class="op">=</span><span class="cn">FALSE</span>, mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">1</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">z</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html">rainbow</a></span><span class="op">(</span><span class="fl">25</span>, alpha<span class="op">=</span><span class="fl">0.35</span><span class="op">)</span>, add<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/lines.html">lines</a></span><span class="op">(</span><span class="va">basins</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/lines.html">points</a></span><span class="op">(</span><span class="va">outlets</span>,pch<span class="op">=</span><span class="fl">21</span>,bg<span class="op">=</span><span class="st">"white"</span>,cex<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/text.html">text</a></span><span class="op">(</span><span class="va">outlets</span>,<span class="va">basins</span><span class="op">$</span><span class="va">cat</span>,cex<span class="op">=</span><span class="fl">0.7</span><span class="op">)</span></code></pre></div>
+<p><img src="process_dem_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p>The attribute table of the outlets vector is passed to the new basins vector.</p>
+<p>We can now select a particular basin (using cat values for example) and subset the <code>SpatRaster</code> accordingly.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">bas</span> <span class="op">=</span> <span class="va">basins</span><span class="op">[</span><span class="va">basins</span><span class="op">$</span><span class="va">cat</span><span class="op">==</span><span class="fl">3</span>,<span class="op">]</span> <span class="co"># get basin of interest</span>
-<span class="va">tmp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/mask.html">mask</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/crop.html">crop</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">bas</span><span class="op">)</span>,<span class="va">bas</span><span class="op">)</span> <span class="co"># clip and crop the stack</span>
-<span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">$</span><span class="va">z</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">bas</span><span class="op">)</span></code></pre></div>
-<p><img src="process_dem_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<span class="va">tmp</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/mask.html">mask</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/crop.html">crop</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">bas</span><span class="op">)</span>,<span class="va">bas</span><span class="op">)</span> <span class="co"># clip and crop </span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">$</span><span class="va">z</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/lines.html">lines</a></span><span class="op">(</span><span class="va">bas</span><span class="op">)</span></code></pre></div>
+<p><img src="process_dem_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 </div>
 <div id="according-to-their-strahler-order" class="section level2">
 <h2 class="hasAnchor">
 <a href="#according-to-their-strahler-order" class="anchor"></a>According to their Strahler order</h2>
 <p>The <code>get_outlets</code> function allows also to define outlets for a given Strahler order.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">outlets_sto</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_outlets.html">get_outlets</a></span><span class="op">(</span><span class="va">st</span>,strahler<span class="op">=</span><span class="fl">3</span>,gisBase<span class="op">=</span><span class="va">gisbase</span><span class="op">)</span>
-<span class="va">basins_sto</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_basins.html">get_basins</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">outlets_sto</span>,gisBase<span class="op">=</span><span class="va">gisbase</span><span class="op">)</span></code></pre></div>
-<pre><code>## ATTENTION: 2 features without category were skipped. Features without
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">outlets_sto</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_outlets.html">get_outlets</a></span><span class="op">(</span><span class="va">st</span>,strahler<span class="op">=</span><span class="fl">3</span><span class="op">)</span>
+<span class="va">basins_sto</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_basins.html">get_basins</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">outlets_sto</span>,<span class="va">gisbase</span><span class="op">)</span></code></pre></div>
+<pre><code>## ATTENTION: 1 feature without category was skipped. Features without
 ##            category are written only when -c flag is given.
 ## OGR data source with driver: GPKG 
-## Source: "/tmp/RtmprANl9m/file1f1c5726e1a1/file1f1c4d885f79/.tmp/vincent-Latitude-5480/647.0.gpkg", layer: "basins"
+## Source: "/tmp/RtmpdpCDij/filed6222e8bf265/PERMANENT/.tmp/vincent-Latitude-5480/145.0.gpkg", layer: "basins"
 ## with 12 features
 ## It has 3 fields</code></pre>
 <p>We can plot these basins.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">z</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">basins_sto</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">outlets_sto</span>,pch<span class="op">=</span><span class="fl">21</span>,bg<span class="op">=</span><span class="st">"white"</span>,cex<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span></code></pre></div>
-<p><img src="process_dem_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">hill</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/gray.html">grey</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">100</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span>, legend<span class="op">=</span><span class="cn">FALSE</span>, mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">1</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">z</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html">rainbow</a></span><span class="op">(</span><span class="fl">25</span>, alpha<span class="op">=</span><span class="fl">0.35</span><span class="op">)</span>, add<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/lines.html">lines</a></span><span class="op">(</span><span class="va">basins_sto</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/lines.html">points</a></span><span class="op">(</span><span class="va">outlets_sto</span>,pch<span class="op">=</span><span class="fl">21</span>,bg<span class="op">=</span><span class="st">"white"</span>,cex<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span></code></pre></div>
+<p><img src="process_dem_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 </div>
 <div id="extracting-the-largest-possible-basins" class="section level2">
 <h2 class="hasAnchor">
 <a href="#extracting-the-largest-possible-basins" class="anchor"></a>Extracting the largest possible basins</h2>
 <p>Another approach is to try to extract the largest possible basins from the DEM. Note that pixels with negative accumulation, where there is a possible contributions of areas located outside of the DEM, are not considered.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">outlets_large</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_outlets.html">get_outlets</a></span><span class="op">(</span><span class="va">st</span>,large<span class="op">=</span><span class="fl">10e4</span>,gisBase<span class="op">=</span><span class="va">gisbase</span><span class="op">)</span> <span class="co"># we specify a minimum area in pixels</span>
-<span class="va">basins_large</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_basins.html">get_basins</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">outlets_large</span>,gisBase<span class="op">=</span><span class="va">gisbase</span><span class="op">)</span></code></pre></div>
-<pre><code>## ATTENTION: 2 features without category were skipped. Features without
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">outlets_large</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_outlets.html">get_outlets</a></span><span class="op">(</span><span class="va">st</span>,large<span class="op">=</span><span class="fl">10e4</span><span class="op">)</span> <span class="co"># we specify a minimum area in pixels</span>
+<span class="va">basins_large</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_basins.html">get_basins</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">outlets_large</span>,<span class="va">gisbase</span><span class="op">)</span></code></pre></div>
+<pre><code>## ATTENTION: 1 feature without category was skipped. Features without
 ##            category are written only when -c flag is given.
 ## OGR data source with driver: GPKG 
-## Source: "/tmp/RtmprANl9m/file1f1c6e876816/file1f1c23471369/.tmp/vincent-Latitude-5480/213.0.gpkg", layer: "basins"
+## Source: "/tmp/RtmpdpCDij/filed6224054e6e6/PERMANENT/.tmp/vincent-Latitude-5480/109.0.gpkg", layer: "basins"
 ## with 7 features
 ## It has 3 fields</code></pre>
 <p>And we plot these basins.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">z</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">basins_large</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">outlets_large</span>,pch<span class="op">=</span><span class="fl">21</span>,bg<span class="op">=</span><span class="st">"white"</span>,cex<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span></code></pre></div>
-<p><img src="process_dem_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">hill</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/gray.html">grey</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">100</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span>, legend<span class="op">=</span><span class="cn">FALSE</span>, mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">1</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">z</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html">rainbow</a></span><span class="op">(</span><span class="fl">25</span>, alpha<span class="op">=</span><span class="fl">0.35</span><span class="op">)</span>, add<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/lines.html">lines</a></span><span class="op">(</span><span class="va">basins_large</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/lines.html">points</a></span><span class="op">(</span><span class="va">outlets_large</span>,pch<span class="op">=</span><span class="fl">21</span>,bg<span class="op">=</span><span class="st">"white"</span>,cex<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span></code></pre></div>
+<p><img src="process_dem_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 </div>
 </div>
 <div id="extracting-river-network" class="section level1">
@@ -314,61 +315,60 @@
 <div id="for-the-whole-network" class="section level2">
 <h2 class="hasAnchor">
 <a href="#for-the-whole-network" class="anchor"></a>For the whole network</h2>
-<p>We use the <code>get_network</code> function to process the <code>RasterStack</code> object.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">net</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_network.html">get_network</a></span><span class="op">(</span><span class="va">st</span>,gisBase<span class="op">=</span><span class="va">gisbase</span><span class="op">)</span></code></pre></div>
-<pre><code>## ATTENTION: 701 points found, but not requested to be exported. Verify
+<p>We use the <code>get_network</code> function to process the <code>SpatRaster</code> object.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">net</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_network.html">get_network</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">gisbase</span><span class="op">)</span></code></pre></div>
+<pre><code>## ATTENTION: 693 points found, but not requested to be exported. Verify
 ##            'type' parameter.
 ## OGR data source with driver: GPKG 
-## Source: "/tmp/RtmprANl9m/file1f1cdc2e483/file1f1c5dd3f46a/.tmp/vincent-Latitude-5480/181.0.gpkg", layer: "temp"
-## with 664 features
+## Source: "/tmp/RtmpdpCDij/filed6224c4ffe15/PERMANENT/.tmp/vincent-Latitude-5480/18.0.gpkg", layer: "temp"
+## with 656 features
 ## It has 24 fields</code></pre>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">z</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">net</span><span class="op">)</span></code></pre></div>
+<p><img src="process_dem_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p>We obtain a <code>SpatVector</code> object, which contains the network as well as an attribute table with various information concerning the stream segments (the field <code>stream</code> correspond to <code>st_id</code> layer of the input <code>SpatRaster</code>). We can plot this network, using the Strahler order of the streams segments for width.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">hill</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/gray.html">grey</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">100</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span>, legend<span class="op">=</span><span class="cn">FALSE</span>, mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">1</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">z</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html">rainbow</a></span><span class="op">(</span><span class="fl">25</span>, alpha<span class="op">=</span><span class="fl">0.35</span><span class="op">)</span>, add<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/lines.html">lines</a></span><span class="op">(</span><span class="va">net</span>,lwd<span class="op">=</span><span class="va">net</span><span class="op">$</span><span class="va">strahler</span>,col<span class="op">=</span><span class="st">"blue"</span><span class="op">)</span></code></pre></div>
 <p><img src="process_dem_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
-<p>We obtain a <code>SpatialLinesDataFrame</code> object, which contains the network as well as an attribute table with various information concerning the stream segments (the field <code>stream</code> correspond to <code>st_id</code> of the input <code>RasterStack</code>). We can plot this network, using the Strahler order of the streams segments for width.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st</span><span class="op">$</span><span class="va">z</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">net</span>,lwd<span class="op">=</span><span class="va">net</span><span class="op">$</span><span class="va">strahler</span>,col<span class="op">=</span><span class="st">"blue"</span>,add<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<p><img src="process_dem_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/writeOGR.html">writeOGR</a></span><span class="op">(</span><span class="va">net</span>,<span class="st">"/tmp/network.gpkg"</span>,layer<span class="op">=</span><span class="st">"network"</span>,driver<span class="op">=</span><span class="st">"GPKG"</span>,overwrite_layer<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="for-a-particular-basin" class="section level2">
 <h2 class="hasAnchor">
 <a href="#for-a-particular-basin" class="anchor"></a>For a particular basin</h2>
-<p>We can also extract the network for a particular basin, after cropping and clipping the <code>RasterStack</code> to the contours of this basin.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<p>We can also extract the network for a particular basin, after cropping and clipping the <code>SpatRast</code> to the contours of this basin.</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">bas0</span> <span class="op">=</span> <span class="va">basins</span><span class="op">[</span><span class="va">basins</span><span class="op">$</span><span class="va">cat</span><span class="op">==</span><span class="fl">3</span>,<span class="op">]</span> <span class="co"># get basin of interest</span>
-<span class="va">st0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/mask.html">mask</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/crop.html">crop</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">bas0</span><span class="op">)</span>,<span class="va">bas0</span><span class="op">)</span> <span class="co"># clip and crop the stack</span>
-<span class="va">ids</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/unique.html">unique</a></span><span class="op">(</span><span class="va">st0</span><span class="op">$</span><span class="va">st_id</span><span class="op">)</span> <span class="co"># get the stream ids located in the clipped stack</span>
+<span class="va">st0</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/mask.html">mask</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/crop.html">crop</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">bas0</span><span class="op">)</span>,<span class="va">bas0</span><span class="op">)</span> <span class="co"># clip and crop </span>
+<span class="va">ids</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/unique.html">unique</a></span><span class="op">(</span><span class="va">st0</span><span class="op">$</span><span class="va">st_id</span><span class="op">)</span><span class="op">$</span><span class="va">st_id</span> <span class="co"># get the stream ids located in the clipped area</span>
 <span class="va">net0</span> <span class="op">=</span> <span class="va">net</span><span class="op">[</span><span class="va">net</span><span class="op">$</span><span class="va">stream</span><span class="op">%in%</span><span class="va">ids</span>,<span class="op">]</span> <span class="co"># subset the network according to that</span>
-<span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st0</span><span class="op">$</span><span class="va">z</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">bas</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">net0</span>,lwd<span class="op">=</span><span class="va">net0</span><span class="op">$</span><span class="va">strahler</span>,col<span class="op">=</span><span class="st">"blue"</span>,add<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<p><img src="process_dem_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">st0</span><span class="op">$</span><span class="va">z</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/lines.html">lines</a></span><span class="op">(</span><span class="va">bas0</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/lines.html">lines</a></span><span class="op">(</span><span class="va">net0</span>,lwd<span class="op">=</span><span class="va">net0</span><span class="op">$</span><span class="va">strahler</span>,col<span class="op">=</span><span class="st">"blue"</span><span class="op">)</span></code></pre></div>
+<p><img src="process_dem_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
 </div>
 </div>
 <div id="extracting-river-profiles" class="section level1">
 <h1 class="hasAnchor">
 <a href="#extracting-river-profiles" class="anchor"></a>Extracting river profiles</h1>
 <p>We can also extract the river profile quite easily. Let’s obtain the largest basin, using the same steps as above.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">bas</span> <span class="op">=</span> <span class="va">basins_large</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span> <span class="co"># largest basin</span>
-<span class="va">st0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/mask.html">mask</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/crop.html">crop</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">bas</span><span class="op">)</span>,<span class="va">bas</span><span class="op">)</span> <span class="co"># clip and crop the stack</span>
-<span class="va">ids</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/unique.html">unique</a></span><span class="op">(</span><span class="va">st0</span><span class="op">$</span><span class="va">st_id</span><span class="op">)</span> <span class="co"># get the stream ids located in the clipped stack</span>
+<span class="va">st0</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/mask.html">mask</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/crop.html">crop</a></span><span class="op">(</span><span class="va">st</span>,<span class="va">bas</span><span class="op">)</span>,<span class="va">bas</span><span class="op">)</span> <span class="co"># clip and crop </span>
+<span class="va">ids</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/unique.html">unique</a></span><span class="op">(</span><span class="va">st0</span><span class="op">$</span><span class="va">st_id</span><span class="op">)</span><span class="op">$</span><span class="va">st_id</span> <span class="co"># get the stream ids located in the clipped area</span>
 <span class="va">net0</span> <span class="op">=</span> <span class="va">net</span><span class="op">[</span><span class="va">net</span><span class="op">$</span><span class="va">stream</span><span class="op">%in%</span><span class="va">ids</span>,<span class="op">]</span> <span class="co"># subset the network according to that</span></code></pre></div>
 <p>We now identify the stream id corresponding to the stream with the largest accumulation inside the basin. We use the <code>get_streams</code> function to collect all the ids of stream segments moving upstream from this starting point.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">id0</span> <span class="op">=</span> <span class="va">st0</span><span class="op">$</span><span class="va">st_id</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/which.minmax.html">which.max</a></span><span class="op">(</span><span class="va">st0</span><span class="op">$</span><span class="va">acc</span><span class="op">)</span><span class="op">]</span><span class="co"># get id of stream from which we start </span>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">id0</span> <span class="op">=</span> <span class="va">net0</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/summarize-generics.html">which.max</a></span><span class="op">(</span><span class="va">net0</span><span class="op">$</span><span class="va">flow_accum</span><span class="op">)</span><span class="op">]</span><span class="op">$</span><span class="va">stream</span> <span class="co"># get id of stream from which we start</span>
 <span class="va">ids0</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_streams.html">get_streams</a></span><span class="op">(</span><span class="va">net0</span>,<span class="va">id0</span>,mode<span class="op">=</span><span class="st">"up"</span><span class="op">)</span> <span class="co"># get upstream ids</span></code></pre></div>
-<p>We now convert the stack as a dataframe, subset to keep only network pixel with ids corresponding to our selection, and ordering according to distance along stream.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">stream0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">st0</span><span class="op">)</span> <span class="co"># convert to data frame</span>
+<p>We now convert the <code>SpatRaster</code> as a dataframe, subset to keep only network pixels with ids corresponding to our selection, and ordering according to distance along stream.</p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">stream0</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">st0</span><span class="op">)</span> <span class="co"># convert to data frame</span>
 <span class="va">stream0</span> <span class="op">=</span> <span class="va">stream0</span><span class="op">[</span><span class="va">stream0</span><span class="op">$</span><span class="va">st_id</span><span class="op">%in%</span><span class="va">ids0</span>,<span class="op">]</span> <span class="co"># select pixel along the profile</span>
 <span class="va">stream0</span> <span class="op">=</span>  <span class="va">stream0</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">stream0</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span>,<span class="op">]</span> <span class="co"># order</span>
-<span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">stream0</span><span class="op">$</span><span class="va">dist</span>,<span class="va">stream0</span><span class="op">$</span><span class="va">z</span>,type<span class="op">=</span><span class="st">"l"</span>,lwd<span class="op">=</span><span class="fl">3</span>,xlab<span class="op">=</span><span class="st">"Distance along stream (m)"</span>,ylab<span class="op">=</span><span class="st">"Elevation (m)"</span><span class="op">)</span></code></pre></div>
-<p><img src="process_dem_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html">plot</a></span><span class="op">(</span><span class="va">stream0</span><span class="op">$</span><span class="va">dist</span>,<span class="va">stream0</span><span class="op">$</span><span class="va">z</span>,type<span class="op">=</span><span class="st">"l"</span>,lwd<span class="op">=</span><span class="fl">3</span>,xlab<span class="op">=</span><span class="st">"Distance along stream (m)"</span>,ylab<span class="op">=</span><span class="st">"Elevation (m)"</span><span class="op">)</span></code></pre></div>
+<p><img src="process_dem_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 </div>
   </div>
 

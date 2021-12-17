@@ -134,28 +134,28 @@ This function relies on the following GRASS GIS modules :
 r.stream.basins (add-on to be installed)</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_basins</span><span class='op'>(</span><span class='va'>st</span>, <span class='va'>outlets</span>, <span class='va'>gisBase</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>get_basins</span><span class='op'>(</span><span class='va'>st</span>, <span class='va'>outlets</span>, <span class='va'>gisbase</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>st</th>
-      <td><p>A RasterStack object from dem_process</p></td>
+      <td><p>A SpatRaster object from `dem_process`</p></td>
     </tr>
     <tr>
       <th>outlets</th>
-      <td><p>Outlets points (SpatialPointsDataFrame)</p></td>
+      <td><p>Outlets points (SpatVector)</p></td>
     </tr>
     <tr>
-      <th>gisBase</th>
+      <th>gisbase</th>
       <td><p>The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A SpatialPolygonDataFrame with the corresponding basins. The attribute table of the outlets vector is transferred.</p>
+    <p>A SpatVector with the corresponding basins. The attribute table of the outlets vector is transferred.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

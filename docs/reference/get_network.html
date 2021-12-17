@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute river network vector based on a RasterStack — get_network • gtbox</title>
+<title>Compute river network vector based on a SpatRast multi-layers raster — get_network • gtbox</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,7 @@
 
 
 
-<meta property="og:title" content="Compute river network vector based on a RasterStack — get_network" />
+<meta property="og:title" content="Compute river network vector based on a SpatRast multi-layers raster — get_network" />
 <meta property="og:description" content="This function relies on the following GRASS GIS modules :
 r.stream.order (add-on to be installed)" />
 
@@ -122,7 +122,7 @@ r.stream.order (add-on to be installed)" />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute river network vector based on a RasterStack</h1>
+    <h1>Compute river network vector based on a SpatRast multi-layers raster</h1>
     
     <div class="hidden name"><code>get_network.Rd</code></div>
     </div>
@@ -132,24 +132,28 @@ r.stream.order (add-on to be installed)" />
 r.stream.order (add-on to be installed)</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_network</span><span class='op'>(</span><span class='va'>st</span>, <span class='va'>gisBase</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>get_network</span><span class='op'>(</span><span class='va'>st</span>, <span class='va'>gisbase</span>, clip <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>st</th>
-      <td><p>A RasterStack object from process_dem</p></td>
+      <td><p>A SpatRast object from `process_dem`</p></td>
     </tr>
     <tr>
-      <th>gisBase</th>
+      <th>gisbase</th>
       <td><p>The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others</p></td>
+    </tr>
+    <tr>
+      <th>clip</th>
+      <td><p>Remove parts with incomplete contributing areas (logical, default FALSE)</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A SpatialLineDataFrame with the corresponding network. The attribute table contains information about network topology.</p>
+    <p>A SpatVector with the corresponding network. The attribute table contains information about network topology.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

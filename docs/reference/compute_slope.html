@@ -130,34 +130,37 @@
     <p>Fits quadratic surfaces at each pixel</p>
     </div>
 
-    <pre class="usage"><span class='fu'>compute_slope</span><span class='op'>(</span><span class='va'>rast</span>, <span class='va'>win</span>, <span class='va'>gisBase</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>compute_slope</span><span class='op'>(</span><span class='va'>rast</span>, <span class='va'>win</span>, <span class='va'>gisbase</span>, central <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>rast</th>
-      <td><p>a `RasterLayer` representing the raster (usually a Digital Elevation Model)</p></td>
+      <td><p>a `SpatRaster` representing the raster (usually a Digital Elevation Model)</p></td>
     </tr>
     <tr>
       <th>win</th>
       <td><p>an odd integer (&gt;=3) specifying the size of the computation window (in pixels)</p></td>
     </tr>
     <tr>
-      <th>gisBase</th>
+      <th>gisbase</th>
       <td><p>The directory path to GRASS binaries and libraries, containing bin and lib sub-directories among others</p></td>
+    </tr>
+    <tr>
+      <th>central</th>
+      <td><p>Constrain fitted surface through central window cell (default TRUE)</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a slope raster</p>
+    <p>a gradient `SpatRaster` (in m/m)</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>The surfaces are parametrized as :
 z = ax^2 + by^2 +cxy +dx + ey + f</p>
-
-
+<p>Slope is calculated as S = (d^2 + e^2)^0.5</p>
 <p>the computation relies on GRASS GIS `r.param.scale` function</p>
 
   </div>

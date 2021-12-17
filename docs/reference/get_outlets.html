@@ -130,14 +130,14 @@
     <p>option `strahler` extract all the basins of the given strahler order</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_outlets</span><span class='op'>(</span><span class='va'>st</span>, strahler <span class='op'>=</span> <span class='cn'>NA</span>, large <span class='op'>=</span> <span class='cn'>NA</span>, elevation <span class='op'>=</span> <span class='cn'>NA</span>, gisBase <span class='op'>=</span> <span class='cn'>NA</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>get_outlets</span><span class='op'>(</span><span class='va'>st</span>, strahler <span class='op'>=</span> <span class='cn'>NA</span>, large <span class='op'>=</span> <span class='cn'>NA</span>, elevation <span class='op'>=</span> <span class='cn'>NA</span>, gisbase <span class='op'>=</span> <span class='cn'>NA</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>st</th>
-      <td><p>A RasterStack object from dem_process</p></td>
+      <td><p>A SpatRaster multi-layers object from `dem_process`</p></td>
     </tr>
     <tr>
       <th>strahler</th>
@@ -147,15 +147,24 @@
       <th>large</th>
       <td><p>The minimum size (in pixels) for the extraction of the largest possible set of basins</p></td>
     </tr>
+    <tr>
+      <th>elevation</th>
+      <td><p>The elevation of the outlets</p></td>
+    </tr>
+    <tr>
+      <th>gisbase</th>
+      <td><p>In the case of elevation option, the directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others</p></td>
+    </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a SpatialPointsDataFrame with identified outlets</p>
+    <p>a SpatVector with identified outlets</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>option `large` extract the largest possible basins from the DEM.
 The indicated minimum size should be larger than the accumulation threshold used to delineate the network.</p>
+<p>option `elevation` extract all outlets at a given elevation</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

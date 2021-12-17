@@ -134,21 +134,21 @@ This function relies on the following GRASS GIS modules :
 r.watershed, r.stream.distance (add-on to be installed)</p>
     </div>
 
-    <pre class="usage"><span class='fu'>process_dem</span><span class='op'>(</span><span class='va'>dem</span>, <span class='va'>th_px</span>, <span class='va'>gisBase</span>, precip <span class='op'>=</span> <span class='cn'>NULL</span>, to_net <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>process_dem</span><span class='op'>(</span><span class='va'>dem</span>, <span class='va'>th_px</span>, <span class='va'>gisbase</span>, precip <span class='op'>=</span> <span class='cn'>NULL</span>, to_net <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>dem</th>
-      <td><p>Digital Elevation Model (RasterLayer)</p></td>
+      <td><p>Digital Elevation Model (SpatRaster)</p></td>
     </tr>
     <tr>
       <th>th_px</th>
       <td><p>Accumulation threshold in pixels to initiate a stream (integer)</p></td>
     </tr>
     <tr>
-      <th>gisBase</th>
+      <th>gisbase</th>
       <td><p>The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others</p></td>
     </tr>
     <tr>
@@ -163,7 +163,7 @@ r.watershed, r.stream.distance (add-on to be installed)</p>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A RasterStack object with the following rasters: `z` (DEM), `acc` (flow accumulation), `dir` (flow direction), `dist` (distance along network), `st_id` (stream id), `nxt_id` (id of the next downstream pixel), `bs_id` (sub basin id)
+    <p>A SpatRaster with the following layers: `z` (DEM), `acc` (flow accumulation), `dir` (flow direction), `dist` (distance along network), `st_id` (stream id), `sto` (Strahler orders of the stream segments), `bs_id` (sub basin id)
 Optionally</p>
 
   </div>
