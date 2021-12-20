@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Trim a raster to remove NA values on the periphery — trim_na • gtbox</title>
+<title>Raster projection utility — project_raster • gtbox</title>
 
 
 <!-- jquery -->
@@ -39,10 +39,9 @@
 
 
 
-<meta property="og:title" content="Trim a raster to remove NA values on the periphery — trim_na" />
-<meta property="og:description" content="The trim function from the terra package only remove cols and rows full of NA.
-This function remove all cols and rows with NA on the periphery.
-Useful to get a nicely formatted raster grid after reprojection." />
+<meta property="og:title" content="Raster projection utility — project_raster" />
+<meta property="og:description" content="Project a raster according to a specified CRS and resolution.
+It will adjust the output extent according to the resolution." />
 
 
 
@@ -123,35 +122,46 @@ Useful to get a nicely formatted raster grid after reprojection." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Trim a raster to remove NA values on the periphery</h1>
+    <h1>Raster projection utility</h1>
     
-    <div class="hidden name"><code>trim_na.Rd</code></div>
+    <div class="hidden name"><code>project_raster.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>The trim function from the terra package only remove cols and rows full of NA.
-This function remove all cols and rows with NA on the periphery.
-Useful to get a nicely formatted raster grid after reprojection.</p>
+    <p>Project a raster according to a specified CRS and resolution.
+It will adjust the output extent according to the resolution.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>trim_na</span><span class='op'>(</span><span class='va'>rast</span>, verbose <span class='op'>=</span> <span class='cn'>F</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>project_raster</span><span class='op'>(</span><span class='va'>rast</span>, <span class='va'>epsg</span>, <span class='va'>resolution</span>, method <span class='op'>=</span> <span class='st'>"bilinear"</span>, trim <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>rast</th>
-      <td><p>input raster (SpatRaster)</p></td>
+      <td><p>input raster (`SpatRaster`)</p></td>
     </tr>
     <tr>
-      <th>verbose</th>
-      <td><p>flag (default FALSE) to switch</p></td>
+      <th>epsg</th>
+      <td><p>the EPSG code to use for projecting the raster</p></td>
+    </tr>
+    <tr>
+      <th>resolution</th>
+      <td><p>the resolution of the projected raster (pixel size in m)</p></td>
+    </tr>
+    <tr>
+      <th>method</th>
+      <td><p>the projection method (default `bilinear`, see `project` from `terra` package for other available options)</p></td>
+    </tr>
+    <tr>
+      <th>trim</th>
+      <td><p>flag (default `FALSE`) to trim the periphery of the rast after projection and remove all NA pixels (use with caution as it can shrink substantially the output raster)</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a trimmed raster (SpatRaster)</p>
+    <p>a projected raster</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

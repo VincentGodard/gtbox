@@ -39,6 +39,8 @@ reference:
   -  project_points
   -  swath_profile
   -  trim_na
+  - project_raster
+  - get_utm
 home :
   links:
   - text: Source code at

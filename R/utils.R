@@ -88,40 +88,35 @@ read_vector_from_grass <- function(name,layer=1,warnings=F){
 
 #' Trim a raster to remove NA values on the periphery
 #'
-#' The trim function from the raster package ony remove cols and rows full of NA
-#' Useful to get a nicely formatted raster grid after reprojection
+#' The trim function from the terra package only remove cols and rows full of NA.
+#' This function remove all cols and rows with NA on the periphery.
+#' Useful to get a nicely formatted raster grid after reprojection.
 #'
 #' @param rast input raster (SpatRaster)
+#' @param verbose flag (default FALSE) to switch
 #'
 #' @return a trimmed raster (SpatRaster)
 #' @export
 #'
 #' @examples
-trim_na <- function(rst0){
-  if(class(rst0)[1]!="SpatRaster"){stop("argument must be a SpatRaster")}
-  rst0 = terra::trim(rst0)
-  m0 = terra::as.matrix(rst0,wide=TRUE)
-  #
-  s1 = m0[terra::nrow(m0),]
-  a1 = (1:terra::ncol(m0))[!is.na(s1)]
-  s3 = m0[1,]
-  a3 = (1:terra::ncol(m0))[!is.na(s3)]
-  s2 = m0[,1]
-  a2 = (1:terra::nrow(m0))[!is.na(s2)]
-  s4 = m0[,terra::ncol(m0)]
-  a4 = (1:terra::nrow(m0))[!is.na(s4)]
-  #
-  lc = range(a1,a3)
-  lr = range(a2,a4)
-  #
-  e = terra::ext(rst0)
-  xmin = e[1] + lc[1]*terra::res(rst0)[1]
-  xmax = e[2] - (terra::ncol(rst0)-lc[2])*terra::res(rst0)[1]
-  ymin = e[3] + (terra::nrow(rst0)-lr[2])*terra::res(rst0)[2]
-  ymax = e[4] - lr[1]*terra::res(rst0)[2]
-
-  rst2 = terra::crop(rst0,terra::ext(c(xmin,xmax,ymin,ymax)))
-  return(rst2)
+trim_na <- function(rast,verbose=F){
+  if(class(rast)[1]!="SpatRaster"){stop("argument must be a SpatRaster")}
+  tmp = terra::trim(rast)
+  val = sum(is.na(tmp[]))
+  if(val==0){print("Raster already clean, nothing removed")}
+  while(val!=0){
+    n = max(1,round(0.5*val/(nrow(tmp)+ncol(tmp))))
+    tmp = crop(tmp,ext(ext(tmp)[1]+n*res(tmp)[1],
+                       ext(tmp)[2]-n*res(tmp)[1],
+                       ext(tmp)[3]+n*res(tmp)[2],
+                       ext(tmp)[4]-n*res(tmp)[2]))
+    val = sum(is.na(tmp[]))
+    if(verbose){
+    print(paste("width in pixels of the group of rows and lines removed :",n))
+    print(paste(val,"remaining NA pixels"))
+    }
+  }
+  return(tmp)
 }
 
 
@@ -164,6 +159,66 @@ get_next<-function(rast,dir){
   res <- ifelse(abs(dir)==7,cbind(rbind(rast[2:nr,2:nc],rep(NA,nc-1)),rep(NA,nr)),res)
   return(terra::rast(res,extent=terra::ext(rast0),crs=terra::crs(rast0,proj=TRUE)))
 }
+
+#' Raster projection utility
+#'
+#' Project a raster according to a specified CRS and resolution.
+#' It will adjust the output extent according to the resolution.
+#'
+#' @param rast  input raster (`SpatRaster`)
+#' @param epsg the EPSG code to use for projecting the raster
+#' @param resolution the resolution of the projected raster (pixel size in m)
+#' @param method the projection method (default `bilinear`, see `project` from `terra` package for other available options)
+#' @param trim flag (default `FALSE`) to trim the periphery of the rast after projection and remove all NA pixels (use with caution as it can shrink substantially the output raster)
+#'
+#' @return a projected raster
+#'
+#' @export
+#'
+#' @examples
+project_raster <- function(rast,epsg,resolution,method="bilinear",trim=FALSE){
+  if(class(rast)[1]!="SpatRaster"){stop("1st argument must be a SpatRaster")}
+  tmp <- terra::project(rast,paste("epsg:",epsg,sep=""))
+  ext1 <- terra::ext(tmp)
+  x1 <- as.numeric(ext1[1] -ext1[1]%%resolution)
+  x2 <- as.numeric(ext1[2] -ext1[2]%%resolution + resolution)
+  y1 <- as.numeric(ext1[3] -ext1[3]%%resolution)
+  y2 <- as.numeric(ext1[4] -ext1[4]%%resolution + resolution)
+  ext2 <- terra::ext(c(x1,x2,y1,y2))
+  temp2 = rast(ext2,crs=terra::crs(tmp),resolution=c(resolution,resolution))
+  rst1 = terra::resample(tmp,temp2,method="bilinear")
+  rst2 = terra::trim(rst1)
+  if(trim){rst2 = gtbox::trim_na(rst2)}
+  return(rst2)
+}
+
+
+#' Easily obtain UTM EPSG code
+#'
+#' Determine the UTM (WGS84) EPSG code of the center of the extent of a `SpatRaster` or `SpatVector`
+#'
+#' @param obj  input raster or vector (`SpatRaster` or `SpatVector`)
+#'
+#' @return EPSG code
+#'
+#' @export
+#'
+#' @examples
+get_utm<-function(obj){
+  if(!class(obj)[1]%in%c("SpatRaster","SpatVector")){stop("Argument must be a SpatRaster or SpatVector")}
+  if(is.lonlat(obj)){
+    ext0 = terra::ext(obj)
+  }else{
+    ext0 <- terra::ext(terra::project(dem0,"epsg:4326"))
+  }
+  epsg=as.numeric(32700-round((45+(ext0[3]+ext0[4])/2)/90,0)*100+round((183+(ext0[1]+ext0[2])/2)/6,0))
+  epsg_e = as.numeric(32700-round((45+(ext0[3]+ext0[4])/2)/90,0)*100+round((183+ext0[1])/6,0))
+  epsg_w = as.numeric(32700-round((45+(ext0[3]+ext0[4])/2)/90,0)*100+round((183+ext0[2])/6,0))
+  if ((epsg!=epsg_e) | (epsg!=epsg_w)){warning(print("Object probably extends over several UTM zones"))}
+  return(epsg)
+}
+
+
 
 
 

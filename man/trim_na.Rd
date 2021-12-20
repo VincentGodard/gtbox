@@ -4,15 +4,18 @@
 \alias{trim_na}
 \title{Trim a raster to remove NA values on the periphery}
 \usage{
-trim_na(rst0)
+trim_na(rast, verbose = F)
 }
 \arguments{
 \item{rast}{input raster (SpatRaster)}
+
+\item{verbose}{flag (default FALSE) to switch}
 }
 \value{
 a trimmed raster (SpatRaster)
 }
 \description{
-The trim function from the raster package ony remove cols and rows full of NA
-Useful to get a nicely formatted raster grid after reprojection
+The trim function from the terra package only remove cols and rows full of NA.
+This function remove all cols and rows with NA on the periphery.
+Useful to get a nicely formatted raster grid after reprojection.
 }
