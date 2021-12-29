@@ -22,7 +22,7 @@
 
 #' Basins outlets positions in the Cevennes area SE France
 #'
-#' @format A SpatialPointsDataFrame
+#' @format A vector layer (SpatVector)
 #' \describe{
 #'   \item{features}{5}
 #'   \item{variables}{2}
@@ -32,16 +32,16 @@
 #'
 "outlets_cevennes"
 
-#' Profile line across the Cevennes area SE France
+#' Along stream data for 5 rivers in the Cevennes area SE France
 #'
-#' @format A SpatialLinesDataFrame
+#' @format A dataframe
 #' \describe{
 #'   \item{features}{1}
-#'   \item{variables}{0}
-#'   \item{extent}{552118.7, 587431.2, 4880279, 4914009}
+#'   \item{variables}{10}
+#'   \item{extent}{565391.4, 584650.7, 4881077, 4892994}
 #'   \item{CRS}{+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs}
 #' }
 #'
-"profile_cevennes"
+"rivers_cevennes"
 
 

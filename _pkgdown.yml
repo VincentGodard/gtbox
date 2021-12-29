@@ -19,6 +19,7 @@ reference:
   -  profile_smooth
   -  profile_gaussian
   -  profile_gradient
+  -  profile_chi
 - title: "Stochastic incision"
   desc: "Functions to model fluvial incision with stochatic stream discharge"
 - contents:
