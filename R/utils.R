@@ -219,6 +219,29 @@ get_utm<-function(obj){
 }
 
 
+#' Compute continuous maps for variable defined along the stream network
+#'
+#' Transfer statistic values from stream segments to the corresponding contributing basins.
+#' It allows to provide a continuous representation of variables defined along the stream network such as chi, for visualization purpose.
+#'
+#' @param st A SpatRaster object from `dem_process`
+#' @param rst A SpatRaster with the variable of interest (defined along streams), which will be transferred to the corresponding contributing areas.
+#' @param FUN The function used to summarize the values for each stream segment (character string : mean, min, max, median)
+#'
+#' @return
+#' @export
+#'
+#' @examples
+streams2basins<-function(st,rst,FUN="mean"){
+  if(!is.character((FUN))){stop("FUN must be character string")}
+  if(!(FUN%in%c("mean","max","min","median"))){stop("FUN must be one of : mean, max, min, median")}
+  FUN <- match.fun(FUN)
+  names(rst)<-"rst"
+  tmp = terra::as.data.frame(c(st$st_id,rst))
+  b = as.matrix(aggregate(tmp[,"rst"],by=list(tmp$st_id),FUN=FUN))
+  res = terra::classify(st$bs_id,b,othersNA=TRUE)
+  return(res)
+}
 
 
 

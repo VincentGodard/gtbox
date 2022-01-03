@@ -1,13 +1,13 @@
 #' Compute chi
 #'
 #'
-#' @param st  A RasterStack object from `dem_process`
-#' @param starting_points starting points for the integration (outlets of basins)
+#' @param st  A SpatRaster object from `dem_process`
+#' @param starting_points starting points (SpatVector) for the integration (outlets of basins)
 #' @param a0 reference accumulation in pixels
 #' @param mn value of the m/n ratio
 #' @param gisbase The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others
 #'
-#' @return a Raster with chi values along streams
+#' @return a SpatRaster with chi values along streams
 #' @export
 #'
 #' @examples

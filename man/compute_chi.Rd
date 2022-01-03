@@ -7,9 +7,9 @@
 compute_chi(st, starting_points, a0, mn, gisbase)
 }
 \arguments{
-\item{st}{A RasterStack object from `dem_process`}
+\item{st}{A SpatRaster object from `dem_process`}
 
-\item{starting_points}{starting points for the integration (outlets of basins)}
+\item{starting_points}{starting points (SpatVector) for the integration (outlets of basins)}
 
 \item{a0}{reference accumulation in pixels}
 
@@ -18,7 +18,7 @@ compute_chi(st, starting_points, a0, mn, gisbase)
 \item{gisbase}{The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others}
 }
 \value{
-a Raster with chi values along streams
+a SpatRaster with chi values along streams
 }
 \description{
 Compute chi

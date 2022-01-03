@@ -40,8 +40,9 @@ reference:
   -  project_points
   -  swath_profile
   -  trim_na
-  - project_raster
-  - get_utm
+  -  project_raster
+  -  get_utm
+  -  streams2basins
 home :
   links:
   - text: Source code at
