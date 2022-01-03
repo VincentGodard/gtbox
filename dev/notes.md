@@ -1,0 +1,1 @@
+- compute_chi : raster based -> option to pass basins to speed up calculation
