@@ -55,7 +55,7 @@ read_raster_from_grass <- function(name,warnings=F){
   opt0 = getOption("warn")
   if(warnings){options(warn=0)}else{options(warn=-1)}
   if(!(is.character(name))){stop("argument must be character string")}
-  rast = terra::rast(raster::raster(rgrass7::readRAST(c(name))))
+  rast = terra::rast(raster::raster(rgrass7::readRAST(c(name))))*1
   return(rast)
   options(warn=opt0)
 }
