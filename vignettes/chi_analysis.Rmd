@@ -1,0 +1,142 @@
+---
+title: 'Simple chi calculations'
+date: "`r Sys.Date()`"
+author: 'Vincent Godard'
+output:
+  html_document: 
+    toc: true
+    toc_float: true
+    number_sections: yes
+    df_print: paged
+    code_download: true
+    code_folding: show
+---
+
+# Objectives
+
+This tutorial demonstrates simple cases of $\chi$ calculation with the `gtbox` package.
+
+- computing a $\chi$  map
+
+
+The first thing we have to do is to load the `gtbox` package (once it has been installed).
+It is required to have GRASS GIS (version 7) installed, as some of the functions used here will rely heavily on GRASS raster processing modules (through the `rgrass7` package).
+It will also be necessary to install the following Addons (through the command `g.extension` in a GRASS session) :
+
+- `r.stream.distance`
+- `r.stream.basins`
+- `r.stream.order`
+
+Note that we will use the `terra` package for most geospatial operations in R. We will use the standard formats from this package : `SpatRaster` for raster layers (eventually with multiple layers) and `SpatVector` for vector layers.
+
+More information on the terra package can be found here :
+
+- [https://rspatial.org/terra/index.html](https://rspatial.org/terra/index.html)
+
+```{r message=FALSE, warning=FALSE}
+library("gtbox")
+library("terra")
+```
+
+
+
+# Preliminary steps
+
+We first load a DEM.
+
+```{r}
+data("dem_cevennes",package = "gtbox")
+dem = terra::rast(dem_cevennes)
+rm(dem_cevennes)
+```
+
+We can compute a hillshade surface and use some transparency on the DEM for a nicer display.
+
+```{r}
+slope <- terra::terrain(dem, "slope", unit="radians")
+aspect <- terra::terrain(dem, "aspect", unit="radians")
+hill <- terra::shade(slope, aspect, 40, 270)
+plot(hill, col=grey(0:100/100), legend=FALSE)
+plot(dem, col=rainbow(25, alpha=0.35), add=TRUE)
+```
+
+We then process the DEM, as illustrated in the Simple Digital Elevation Model operations vignette.
+
+```{r warning=FALSE}
+gisbase = "/usr/lib/grass78/"
+th_px = 2000 # stream initiation threshold in pixels
+st = process_dem(dem,th_px,gisbase=gisbase)
+```
+
+# $\chi$ map computation
+
+We are going to compute a chi map over the DEM, starting the integration at a specified elevation.
+We first get the corresponding outlets and basins.
+
+```{r}
+outlets = get_outlets(st,elevation=250,gisbase=gisbase)
+basins = get_basins(st,outlets,gisbase=gisbase)
+```
+
+We then compute the $\chi$ values along the network.
+
+```{r}
+chi = compute_chi(st,outlets,a0=1000,mn=0.5,gisbase)
+```
+
+We transfer the $\chi$ values defined along streams to adjacent areas to obtain a continuous map, easier to visualize.
+
+```{r}
+chi_map = streams2basins(st,chi,FUN="mean")
+chi_map = mask(chi_map,basins)
+```
+
+We plot everything
+
+```{r}
+plot(hill, col=grey(0:100/100), legend=FALSE)
+plot(chi_map, col=heat.colors(25, alpha=0.35), add=TRUE)
+lines(basins)
+points(outlets)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
