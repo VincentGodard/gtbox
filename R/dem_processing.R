@@ -65,7 +65,9 @@ process_dem<-function(dem,th_px,gisbase,precip=NULL,to_net=FALSE){
   dist = read_raster_from_grass("distance")
   names(dist) <- "dist"
 
-  rast_list = c(dem2,acc,dir,dist,st_id,bs_id,sto)
+  #rast_list = c(dem2,acc,dir,dist,st_id,bs_id,sto)
+  rast_list = c(dem2*1,acc*1,dir*1,dist*1,st_id*1,bs_id*1,sto*1)
+
 
   # distance  to network and  elevation above network
   if (to_net){
