@@ -16,7 +16,11 @@ start_grass<-function(rast,name,gisbase){
   Sys.setenv("GRASS_VERBOSE"=0)
 
   # start grass
-  rgrass7::initGRASS(gisbase,home=tempdir(),mapset="PERMANENT",override = TRUE)
+#  rgrass7::initGRASS(gisbase,home=tempdir(),mapset="PERMANENT",override = TRUE)
+
+  rgrass7::initGRASS(gisbase,home=tempdir(),mapset="PERMANENT",
+                     addon_base=paste(Sys.getenv("HOME"), "/.grass8/addons", sep=""),override = TRUE)
+
 
   # # start grass
   # rgrass7::initGRASS(gisbase,mapset="PERMANENT",override = TRUE)
