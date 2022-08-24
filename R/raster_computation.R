@@ -16,7 +16,7 @@
 compute_zonal_stats <- function(vect,rast,name,gisbase){
   start_grass(rast,"rast",gisbase)
   write_vector_to_grass(vect,"vect")
-  rgrass7::execGRASS("v.rast.stats", flags=c("c"),
+  rgrass::execGRASS("v.rast.stats", flags=c("c"),
                      parameters=list(map="vect",
                                      raster="rast",
                                      column_prefix=name))
@@ -63,22 +63,22 @@ compute_curvature <- function(rast,win,gisbase,central=TRUE,planar=FALSE){
 
   if (!planar){
 
-    rgrass7::execGRASS("r.param.scale", flags=fl,
+    rgrass::execGRASS("r.param.scale", flags=fl,
                        parameters=list(input="rast",
                        output="r_maxic",
                        method="maxic",
                        size=win))
 
-    rgrass7::execGRASS("r.param.scale", flags=fl,
+    rgrass::execGRASS("r.param.scale", flags=fl,
                        parameters=list(input="rast",
                        output="r_minic",
                        method="minic",
                        size=win))
 
-    rgrass7::execGRASS("r.mapcalc", expression="curv = r_maxic + r_minic")
+    rgrass::execGRASS("r.mapcalc", expression="curv = r_maxic + r_minic")
 
   }else{
-    rgrass7::execGRASS("r.param.scale", flags=fl,
+    rgrass::execGRASS("r.param.scale", flags=fl,
                        parameters=list(input="rast",
                        output="curv",
                        method="planc",
@@ -126,7 +126,7 @@ compute_slope <- function(rast,win,gisbase,central=TRUE){
   start_grass(rast,"rast",gisbase)
   Sys.setenv(OMP_NUM_THREADS=1)
 
-  rgrass7::execGRASS("r.param.scale", flags=c("overwrite"),
+  rgrass::execGRASS("r.param.scale", flags=c("overwrite"),
                      parameters=list(input="rast",
                      output="slope",
                      method="slope",

@@ -29,7 +29,7 @@ process_dem<-function(dem,th_px,gisbase,precip=NULL,to_net=FALSE){
   names(dem2) <- "z"
 
   # compute accumulation, flow direction and streams/basins ids
-  rgrass7::execGRASS("r.watershed", flags=c("overwrite","s"),
+  rgrass::execGRASS("r.watershed", flags=c("overwrite","s"),
                      parameters=list(elevation="dem",
                      threshold=th_px,
                      accumulation="accumulation",
@@ -46,7 +46,7 @@ process_dem<-function(dem,th_px,gisbase,precip=NULL,to_net=FALSE){
   names(bs_id) <- "bs_id"
 
   # compute strahler orders
-  rgrass7::execGRASS("r.stream.order", flags=c("overwrite"),
+  rgrass::execGRASS("r.stream.order", flags=c("overwrite"),
                      parameters=list(stream_rast="streams",
                                      direction="direction",
                                      strahler="strahler"))
@@ -58,7 +58,7 @@ process_dem<-function(dem,th_px,gisbase,precip=NULL,to_net=FALSE){
   #nxt_id@data@names <- "nxt_id"
 
   # compute distance along network
-  rgrass7::execGRASS("r.stream.distance", flags=c("overwrite","o"),
+  rgrass::execGRASS("r.stream.distance", flags=c("overwrite","o"),
                      parameters=list(stream_rast="streams",
                      direction="direction",
                      distance="distance"))
@@ -71,7 +71,7 @@ process_dem<-function(dem,th_px,gisbase,precip=NULL,to_net=FALSE){
 
   # distance  to network and  elevation above network
   if (to_net){
-    rgrass7::execGRASS("r.stream.distance", flags=c("overwrite"),
+    rgrass::execGRASS("r.stream.distance", flags=c("overwrite"),
                        parameters=list(stream_rast="streams",
                                        direction="direction",
                                        elevation="dem",
@@ -88,7 +88,7 @@ process_dem<-function(dem,th_px,gisbase,precip=NULL,to_net=FALSE){
   if (!(is.null(precip))){
     write_raster_to_grass(precip,"precip")
 
-    rgrass7::execGRASS("r.watershed", flags=c("overwrite","s"),
+    rgrass::execGRASS("r.watershed", flags=c("overwrite","s"),
                        parameters=list(elevation="dem",
                                        threshold=th_px,
                                        accumulation="accumulation",
@@ -185,7 +185,7 @@ get_outlets <- function(st,strahler=NA,large=NA,elevation=NA,gisbase=NA){
     #
     start_grass(st$z,"dem",gisbase)
     write_raster_to_grass(st_pts,"flow")
-    rgrass7::execGRASS("r.watershed", flags=c("overwrite","s"),
+    rgrass::execGRASS("r.watershed", flags=c("overwrite","s"),
                        parameters=list(elevation="dem",
                                        accumulation="accumulation",
                                        drainage="direction",
@@ -232,20 +232,20 @@ get_basins<-function(st,outlets,gisbase){
   write_vector_to_grass(outlets,"outlets")
 
   # compute basins
-  rgrass7::execGRASS("r.mapcalc", expression="direction0 = round(direction)")
-  rgrass7::execGRASS("r.stream.basins", flags=c("overwrite"),
+  rgrass::execGRASS("r.mapcalc", expression="direction0 = round(direction)")
+  rgrass::execGRASS("r.stream.basins", flags=c("overwrite"),
                      parameters=list(direction="direction0",
                                      points="outlets",
                                      basins="basins"))
 
   # vectorize basins
-  rgrass7::execGRASS("r.to.vect", flags=c("overwrite","v"),
+  rgrass::execGRASS("r.to.vect", flags=c("overwrite","v"),
                      parameters=list(input="basins",
                                      output="basins",
                                      type="area"))
 
   # attach attribute table
-  rgrass7::execGRASS("v.db.join", parameters=list(map="basins",
+  rgrass::execGRASS("v.db.join", parameters=list(map="basins",
                                                   column="cat",
                                                   other_table="outlets",
                                                   other_column="cat"))
@@ -282,11 +282,11 @@ get_network<-function(st,gisbase,clip=FALSE){
   #
   start_grass(st$z,"dem",gisbase)
   write_raster_to_grass(st$st_id,"streams")
-  rgrass7::execGRASS("r.mapcalc", expression="streams0 = round(streams)")
+  rgrass::execGRASS("r.mapcalc", expression="streams0 = round(streams)")
   write_raster_to_grass(st$acc,"acc")
   write_raster_to_grass(st$dir,"dir")
-  rgrass7::execGRASS("r.mapcalc", expression="dir0 = round(dir)")
-  rgrass7::execGRASS("r.stream.order", flags=c("overwrite"),
+  rgrass::execGRASS("r.mapcalc", expression="dir0 = round(dir)")
+  rgrass::execGRASS("r.stream.order", flags=c("overwrite"),
                      parameters=list(stream_rast="streams0",
                                      accumulation="acc",
                                      elevation="dem",

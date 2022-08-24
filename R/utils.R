@@ -11,27 +11,27 @@ start_grass<-function(rast,name,gisbase){
   if(class(rast)[1]!="SpatRaster"){stop("first argument must be a SpatRaster")}
   if(!(is.character(name))){stop("second argument must be a character string")}
 
-  rgrass7::use_sp()
+  rgrass::use_sp()
 
   Sys.setenv("GRASS_VERBOSE"=0)
 
   # start grass
-#  rgrass7::initGRASS(gisbase,home=tempdir(),mapset="PERMANENT",override = TRUE)
+#  rgrass::initGRASS(gisbase,home=tempdir(),mapset="PERMANENT",override = TRUE)
 
-  rgrass7::initGRASS(gisbase,home=tempdir(),mapset="PERMANENT",
+  rgrass::initGRASS(gisbase,home=tempdir(),mapset="PERMANENT",
                      addon_base=paste(Sys.getenv("HOME"), "/.grass8/addons", sep=""),override = TRUE)
 
 
   # # start grass
-  # rgrass7::initGRASS(gisbase,mapset="PERMANENT",override = TRUE)
+  # rgrass::initGRASS(gisbase,mapset="PERMANENT",override = TRUE)
 
   # set projection
   crs0 = as.character(terra::crs(rast,proj=TRUE))
-  rgrass7::execGRASS("g.proj",flags=c("c"),
+  rgrass::execGRASS("g.proj",flags=c("c"),
                      parameters=list(proj4=crs0))
   # set location properties
   ext0 = terra::ext(rast)
-  rgrass7::execGRASS("g.region",parameters=list(rows=terra::nrow(rast),
+  rgrass::execGRASS("g.region",parameters=list(rows=terra::nrow(rast),
                                                 cols=terra::ncol(rast),
                                                 ewres=as.character(terra::res(rast)[1]),
                                                 nsres=as.character(terra::res(rast)[2]),
@@ -51,7 +51,7 @@ write_raster_to_grass <- function(rast,name,warnings=F){
   if(warnings){options(warn=0)}else{options(warn=-1)}
   if(!(is.character(name))){stop("second argument must be a character string")}
   if(class(rast)[1]!="SpatRaster"){stop("first argument must be a SpatRaster")}
-  rgrass7::writeRAST(as(raster::raster(rast), 'SpatialGridDataFrame'),vname=c(name))
+  rgrass::writeRAST(as(raster::raster(rast), 'SpatialGridDataFrame'),vname=c(name))
   options(warn=opt0)
 }
 
@@ -59,7 +59,7 @@ read_raster_from_grass <- function(name,warnings=F){
   opt0 = getOption("warn")
   if(warnings){options(warn=0)}else{options(warn=-1)}
   if(!(is.character(name))){stop("argument must be character string")}
-  rast = terra::rast(raster::raster(rgrass7::readRAST(c(name))))
+  rast = terra::rast(raster::raster(rgrass::readRAST(c(name))))
   return(rast)
   options(warn=opt0)
 }
@@ -69,7 +69,7 @@ write_vector_to_grass <- function(vect,name,warnings=F){
   if(warnings){options(warn=0)}else{options(warn=-1)}
   if(!(is.character(name))){stop("second argument must be a character string")}
   if(class(vect)[1]!="SpatVector"){stop("first argument must be a SpatVector")}
-  rgrass7::writeVECT(as(vect,"Spatial"),vname=c(name),v.in.ogr_flags=c("overwrite","o"))
+  rgrass::writeVECT(as(vect,"Spatial"),vname=c(name),v.in.ogr_flags=c("overwrite","o"))
   options(warn=opt0)
 }
 
@@ -77,7 +77,7 @@ read_vector_from_grass <- function(name,layer=1,warnings=F){
   opt0 = getOption("warn")
   if(warnings){options(warn=0)}else{options(warn=-1)}
   if(!(is.character(name))){stop("argument must be character string")}
-  vector = terra::vect(rgrass7::readVECT(c(name),layer=layer))
+  vector = terra::vect(rgrass::readVECT(c(name),layer=layer))
   return(vector)
   options(warn=opt0)
 }

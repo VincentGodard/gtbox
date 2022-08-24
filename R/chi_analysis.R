@@ -23,7 +23,7 @@ compute_chi <- function(st,starting_points,a0,mn,gisbase){
   prm[is.na(st$st_id)] <- NA
   start_grass(prm,"prm",gisbase)
   write_vector_to_grass(starting_points,"st_pts")
-  rgrass7::execGRASS("r.cost", flags=c("overwrite","n"), parameters=list(input="prm",
+  rgrass::execGRASS("r.cost", flags=c("overwrite","n"), parameters=list(input="prm",
                                                                          output="chi",
                                                                          start_points="st_pts"))
   chi = read_raster_from_grass("chi")
