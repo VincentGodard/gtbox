@@ -11,7 +11,7 @@ start_grass<-function(rast,name,gisbase){
   if(class(rast)[1]!="SpatRaster"){stop("first argument must be a SpatRaster")}
   if(!(is.character(name))){stop("second argument must be a character string")}
 
-  rgrass::use_sp()
+#  rgrass::use_sp()
 
   Sys.setenv("GRASS_VERBOSE"=0)
 

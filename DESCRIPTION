@@ -18,7 +18,7 @@ Imports: fields,
          raster,
          rgeos,
          rgdal,
-         rgrass7,
+         rgrass,
          sf,
          sp,
          terra
