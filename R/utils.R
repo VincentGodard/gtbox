@@ -51,7 +51,8 @@ write_raster_to_grass <- function(rast,name,warnings=F){
   if(warnings){options(warn=0)}else{options(warn=-1)}
   if(!(is.character(name))){stop("second argument must be a character string")}
   if(class(rast)[1]!="SpatRaster"){stop("first argument must be a SpatRaster")}
-  rgrass::writeRAST(as(raster::raster(rast), 'SpatialGridDataFrame'),vname=c(name))
+  #rgrass::writeRAST(as(raster::raster(rast), 'SpatialGridDataFrame'),vname=c(name))
+  rgrass::write_RAST(rast,vname=c(name))
   options(warn=opt0)
 }
 
@@ -59,7 +60,8 @@ read_raster_from_grass <- function(name,warnings=F){
   opt0 = getOption("warn")
   if(warnings){options(warn=0)}else{options(warn=-1)}
   if(!(is.character(name))){stop("argument must be character string")}
-  rast = terra::rast(raster::raster(rgrass::readRAST(c(name))))
+  #rast = terra::rast(raster::raster(rgrass::readRAST(c(name))))
+  rast = rgrass::read_RAST(c(name)))
   return(rast)
   options(warn=opt0)
 }
