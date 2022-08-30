@@ -61,7 +61,7 @@ read_raster_from_grass <- function(name,warnings=F){
   if(warnings){options(warn=0)}else{options(warn=-1)}
   if(!(is.character(name))){stop("argument must be character string")}
   #rast = terra::rast(raster::raster(rgrass::readRAST(c(name))))
-  rast = rgrass::read_RAST(c(name)))
+  rast = rgrass::read_RAST(c(name))
   return(rast)
   options(warn=opt0)
 }
